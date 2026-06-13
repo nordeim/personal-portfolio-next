@@ -33,33 +33,36 @@ Avant-garde digital installation porting the Nicholas Yun portfolio from a Vite 
 - **`optimizeFonts`**: Removed in Next.js 16 — do NOT add to `next.config.ts`.
 
 ### Design System & Styling
-- **Brutalist Enforcement**: `border-radius: 0px !important` is enforced globally.
-- **28px Grid**: Layout is governed by a 28px mathematical backbone (`--spacing-grid` in `@theme`).
+- **Brutalist Enforcement**: `border-radius: 0px !important` is enforced globally. Note: scrollbar thumb currently uses `border-radius: 3px` — this is a known deviation.
+- **28px Grid**: Layout is governed by a 28px mathematical backbone (`--spacing-grid` in `@theme`). Derived: `--spacing-double` (56px), `--spacing-half` (14px), `--spacing-quarter` (7px).
 - **Typography Hierarchy**:
   - **Editorial**: `Cormorant Garamond` (Headings/Narrative) — `var(--font-editorial)` / `var(--font-serif)` / `var(--font-display)`.
   - **Utility**: `IBM Plex Mono` (Labels/Machine Mode) — `var(--font-utility)` / `var(--font-mono)`.
   - **Body**: `DM Sans` (General content, replaces Inter) — `var(--font-body)` / `var(--font-sans)`.
-- **Theme System**: Uses `data-theme="night"` / `data-theme="day"`. CSS selectors target `[data-theme="day"]`. NOT class-based (`theme-night` / `theme-day`).
-- **CSS Variable Naming**: The canonical convention uses `--color-` prefix (e.g., `--color-border`, `--color-text-primary`, `--color-bg`). Dormant components use shorthand names (`--border-color`, `--text-primary`) that are NOT defined — see Gotchas.
+- **Theme System**: Uses `data-theme="night"` / `data-theme="day"` on `<html>`. CSS selectors target `[data-theme="day"]`. NOT class-based (`theme-night` / `theme-day`). System preference (`prefers-color-scheme`) is detected when no stored value exists.
+- **CSS Variable Naming**: The canonical convention uses `--color-` prefix (e.g., `--color-border`, `--color-text-primary`, `--color-bg`). Archived components in `_archive/` use shorthand names (`--border-color`, `--text-primary`) that are NOT defined — see Gotchas.
 
 ### Architecture & Routing
 - **Client-Side Orchestrator**: Most portfolio logic runs in `src/app/PortfolioApp.tsx` (Client Component with `"use client"`). Note: this file is in `src/app/`, NOT `src/components/`.
 - **Entry Point**: `src/app/page.tsx` is a Client Component that dynamically imports `PortfolioApp` from `@/app/PortfolioApp` with `ssr: false`. Uses `react-error-boundary` (not the custom `ErrorBoundary` component).
-- **Hash Routing**: Preserved via `useRouteHash` hook — but `VALID_SECTIONS` is currently **out of sync** with actual section IDs. See Gotchas.
-- **Static Content**: Active data comes from `src/lib/projects.ts`, `src/lib/skills.ts`, `src/lib/timeline.ts`. The file `src/lib/data.ts` is **dead code** (never imported by active components).
+- **Hash Routing**: Preserved via `useRouteHash` hook. `VALID_SECTIONS` is aligned with actual section IDs: `["hero","about","projects","skills","experience","blog","terminal","contact"]`.
+- **Site Configuration**: Centralized in `src/lib/site-config.ts` — name, email, social links, URL. All components that need this data import from here.
+- **Static Content**: Active data comes from `src/lib/projects.ts`, `src/lib/skills.ts`, `src/lib/timeline.ts`. The file `src/lib/_archive/data.ts` is **archived dead code** (never imported by active components).
 - **Lazy Loading**: Below-the-fold sections use `React.lazy()` + `Suspense` for code splitting.
 - **Error Boundaries**: Two systems coexist — `react-error-boundary` at the page level (`page.tsx`) and a custom class-based `ErrorBoundary` per section (in `PortfolioApp.tsx`).
+- **Rate Limiting**: `src/lib/rate-limit.ts` provides an in-memory sliding window rate limiter. Applied to `/api/contact`. For multi-instance deployments, replace with Redis/Upstash.
 
 ### Component Classification
-**Active** (18, used by `PortfolioApp.tsx`): Navigation, HeroKinetic, SectionBlock, ErrorBoundary, AccessibilityProvider, BentoGrid, ProjectsSection, ProjectCard, SkillsSection, Timeline, BlogSection, Terminal, ContactSection, Footer, ThemeSwitch, ScrollReveal, ThemeScript.
+**Active** (17, used by `PortfolioApp.tsx`): Navigation, HeroKinetic, SectionBlock, ErrorBoundary, AccessibilityProvider, BentoGrid, ProjectsSection, ProjectCard, SkillsSection, Timeline, BlogSection, Terminal, ContactSection, Footer, ThemeSwitch, ScrollReveal, ThemeScript.
 
-**Dormant** (14, exist but NOT wired in): AboutFlow, ArchiveSpread, ArchiveItemCard, BentoTile, BrandMark, ClientOnly, CodeRain, ContentBody, DitherOverlay, GrainOverlay, LayoutShell, MachineOverlay, MobileDrawer, SocialIcon, ThemeToggle.
+**Archived** (14, in `src/components/_archive/`): AboutFlow, ArchiveSpread, ArchiveItemCard, BentoTile, BrandMark, ClientOnly, CodeRain, ContentBody, DitherOverlay, GrainOverlay, LayoutShell, MachineOverlay, MobileDrawer, SocialIcon, ThemeToggle.
 
-> Dormant components have **unresolved CSS variable references** and **undefined Tailwind classes**. They need remediation before integration — see Gotchas. ~40% of the codebase is dormant.
+> Archived components have **unresolved CSS variable references** (shorthand names) and **undefined Tailwind classes**. They need remediation before integration — see Gotchas.
 
 ### Type System
 - **`Project` type consolidated** — Single canonical definition in `src/lib/types.ts`, re-exported from `src/lib/projects.ts`. Fields: `id`, `title`, `description`, `role`, `period`, `category`, `tech` (readonly string[]), `links: ProjectLink` (with `live?` and `repo?`), `image?`, `featured?`.
-- **Dormant types in `types.ts`**: `AboutPillar`, `ParsedCollectionItem`, `Collection`, `ParsedPortfolioItem`, `MachineOverlayData`, `SocialIconVariant` — only imported by dormant components.
+- **`SiteConfig` interface** — Defined in `types.ts`, implemented as `const` in `site-config.ts`. Single source of truth for name, email, URLs.
+- **Archived types in `types.ts`**: `AboutPillar`, `ParsedCollectionItem`, `Collection`, `ParsedPortfolioItem`, `MachineOverlayData`, `SocialIconVariant` — only imported by archived components.
 - **`noUncheckedIndexedAccess: true`** — Array index access returns `T | undefined`. Always use `?.` or `??`.
 
 ## Development Workflow
@@ -95,110 +98,94 @@ Avant-garde digital installation porting the Nicholas Yun portfolio from a Vite 
 
 ## Gotchas & Critical Warnings
 
-### 14 Undefined CSS Variables in Active Components
-Active components reference these variables via `var(--*)` that are **NOT defined** in `@theme`, causing them to resolve to `unset` at runtime:
-
-| Variable | Used In | Expected Value |
-|----------|---------|----------------|
-| `--font-display` | HeroKinetic, Timeline, BlogSection, ContactSection, BentoGrid, ProjectCard | Alias for `--font-editorial` |
-| `--spacing-double` | HeroKinetic, SectionBlock, ProjectsSection, ContactSection | `56px` (2 × grid) |
-| `--spacing-half` | Navigation, ProjectsSection, SkillsSection, Timeline, ContactSection, ThemeSwitch, Terminal, BentoGrid, ErrorBoundary | `14px` (grid / 2) |
-| `--spacing-quarter` | Navigation, ProjectsSection, SkillsSection, Timeline, ContactSection, ThemeSwitch, ErrorBoundary | `7px` (grid / 4) |
-| `--transition-fast` | Navigation, HeroKinetic, ProjectsSection, ProjectCard, ThemeSwitch, ContactSection, Footer, BentoGrid | e.g., `150ms ease` |
-| `--shadow-brutal` | HeroKinetic, ContactSection, Terminal | e.g., `4px 4px 0 0 var(--color-border-strong)` |
-| `--shadow-brutal-sm` | SkillsSection, ProjectCard, BentoGrid | e.g., `2px 2px 0 0 var(--color-border)` |
-| `--color-text-inverse` | HeroKinetic, ProjectsSection, ProjectCard, ContactSection | Inverse of `--color-text-primary` |
-| `--color-border-subtle` | Navigation, HeroKinetic, ProjectsSection, ProjectCard, SkillsSection, BlogSection | Lighter than `--color-border` |
-| `--color-bg-sunken` | ProjectCard, ContactSection, Terminal | Darker than `--color-bg` |
-| `--color-bg-elevated` | Terminal, ErrorBoundary | Lighter than `--color-surface` |
-| `--color-error` | ContactSection, Terminal, ErrorBoundary | Red for error states |
-| `--color-accent-subtle` | ContactSection | Low-opacity accent |
-
-**These need to be added to `@theme` in `globals.css` with day-theme overrides.**
-
-### Hash Routing Mismatch (Functional Breakage)
-`useRouteHash` validates `VALID_SECTIONS = ["hero","who","work","skills","music","now","contact"]` but `PortfolioApp` renders sections with IDs `["hero","about","projects","skills","experience","blog","terminal","contact"]`. Only `hero`, `skills`, and `contact` match. This breaks `aria-current` indicators and active link highlighting for most sections. Update `VALID_SECTIONS` to match.
-
-### Theme Target Inconsistency
-- `ThemeScript` (in `layout.tsx`) sets `data-theme` on `document.documentElement` (`<html>`)
-- `PortfolioApp` sets `data-theme` on `document.body`
-- CSS `[data-theme="day"]` only matches the element it's set on
-- **Pick one target and use it consistently.** Recommendation: use `<html>` (which ThemeScript already targets).
-
-### CSS Import Order (MUST follow)
-```
-/* CORRECT order in globals.css: */
-@import url("...fonts...");   /* 1. External font imports FIRST */
-@import "tailwindcss";        /* 2. Tailwind second (expands to @layer rules) */
-
-/* WRONG — will cause build warning and font loading failure: */
-@import "tailwindcss";
-@import url("...fonts...");   /* @import must precede all rules */
-```
-
-### Two CSS Variable Naming Conventions
-The `@theme` block defines variables with `--color-` prefix:
-- `--color-border`, `--color-text-primary`, `--color-bg`, `--color-surface`, etc.
-
-Dormant components use shorthand names that **do not exist**:
+### Archived Components Use Old CSS Variable Names
+Components in `_archive/` use shorthand names that **do not exist** in `@theme`:
 - `--border-color`, `--text-primary`, `--bg-surface`, `--bg-primary`, `--bg-elevated`, `--text-secondary`, `--text-muted`, `--border-strong`, `--color-accent-code`, `--color-accent-poetry`
 
-**Before integrating any dormant component**, either define aliases in `globals.css` or rewrite the component to use the `--color-` prefix convention.
+**Before integrating any archived component**, either define aliases in `globals.css` or rewrite the component to use the `--color-` prefix convention (`--color-border`, `--color-text-primary`, etc.).
 
-### Missing Tailwind Utility Classes (Dormant Components)
-Dormant components reference these classes. `@theme` now has corresponding `--font-*` and `--z-index-*` entries, but verify Tailwind v4 mapping works:
+### Missing Tailwind Utility Classes (Archived Components)
+Archived components reference these classes. `@theme` has corresponding `--font-*` and `--z-index-*` entries, but verify Tailwind v4 mapping works:
 - `font-editorial`, `font-utility`, `font-body` — mapped from `--font-editorial`, `--font-utility`, `--font-body`
 - `z-grain`, `z-machine`, `z-mobile-backdrop`, `z-mobile-drawer` — mapped from `--z-index-grain`, etc.
 
-### Duplicate Skip-Link
-Both `layout.tsx` and `PortfolioApp.tsx` render `<a href="#main-content" className="skip-link">`. Remove one — preferably keep in `layout.tsx` (server-rendered, always present).
+### `page.tsx` Is a Client Component
+`src/app/page.tsx` has `"use client"` because it uses `next/dynamic` with `ssr: false`. This means the entire page is client-rendered — no SSR. Metadata from `layout.tsx` (Server Component) still works. If you re-enable SSR, remove `"use client"` from `page.tsx` and use `Suspense` boundaries instead.
 
 ### `PortfolioApp.tsx` Location
-`PortfolioApp.tsx` lives in `src/app/`, NOT `src/components/`. The import in `page.tsx` must be `@/app/PortfolioApp`. Do NOT move it to `src/components/` — the App Router co-locates it with the route.
+`PortfolioApp.tsx` lives in `src/app/`, NOT `src/components/`. The import in `page.tsx` must be `@/app/PortfolioApp`. Do NOT move it — the App Router co-locates the orchestrator with the route.
 
 ### `react-error-boundary` v4 Type Change
 `FallbackProps.error` is typed as `unknown`, not `Error`. Custom fallback components must use `error: unknown` and guard with `instanceof Error` to access `.message`.
 
-### Database Null Safety
-`src/db/index.ts` exports `db` as potentially `null`. Any API route using `db` must guard:
-```typescript
-if (!db) {
-  return Response.json({ ok: false, error: "Database not configured" }, { status: 503 });
-}
-```
+### `noUncheckedIndexedAccess: true`
+Array index access returns `T | undefined`. Always use `?.` or `??`. This caught 6+ real bugs during Remediation 2 (e.g., `commandHistory[newIndex]`, `columns[i]`, `CHARS[index]`, `focusable[0]`).
+
+### Theme System: `data-theme` Attribute, NOT Classes
+Theme switching uses `data-theme="night"` / `data-theme="day"` set on `document.documentElement` (`<html>`). CSS selectors target `[data-theme="day"]`. Do NOT use class-based theme switching (`theme-night`, `theme-day`). Both `ThemeScript` (initial paint) and `PortfolioApp` (runtime toggle) target `<html>` consistently.
+
+### Database Is Optional
+`src/db/index.ts` exports `db` which can be `null` if `DATABASE_URL` is not set. Any API route using `db` must include a null guard. The health endpoint (`/api/health`) returns 503 when DB is unavailable.
+
+### Contact API Endpoint Logs to Console
+`/api/contact` validates input, rate-limits requests, but only `console.log`s submissions. Must integrate an email service (Resend, SendGrid, etc.) before production.
+
+### Rate Limiter Is In-Memory Only
+`src/lib/rate-limit.ts` uses a `Map` for storage. This does not persist across server instances or restarts. For multi-instance deployments (Vercel, Docker), replace with Redis/Upstash rate limiting.
 
 ### `drizzle.config.json` Hardcoded Credentials
-Contains `postgresql://postgres:postgres@127.0.0.1:5432/app_db`. Replace with `process.env.DATABASE_URL` or `.env` variable.
+Contains `postgresql://postgres:postgres@127.0.0.1:5432/app_db`. Must use environment variable instead.
 
-### Dead Code
-The following files are never imported by any active component and should be deleted or integrated:
-- **Lib**: `data.ts`, `content.ts`, `utils.ts`, `testimonials.ts`, `sounds.ts`
-- **Hooks**: `useViewTransitions.ts`, `useWeightedScroll.ts`
-- **Components**: All 14 dormant components listed above
+### `useAccessibility()` Hook Never Consumed
+`AccessibilityProvider` provides `prefersReducedMotion` and `prefersHighContrast` via context, but no child component uses `useAccessibility()`. Components that need reduced-motion checks use `useReducedMotion()` directly or inline `window.matchMedia`. This should be consolidated.
+
+### Missing Portrait Assets
+Archived `data.ts` references `/portraits/*.webp` files that don't exist in `public/`. Either add the assets or remove the references.
+
+### CSS Import Order (MUST follow)
+```
+/* CORRECT order in globals.css: */
+@import "tailwindcss";      /* Tailwind (expands to @layer rules) */
+
+/* Note: Google Fonts are loaded via <link> tags in layout.tsx <head>,
+   NOT via @import in globals.css. This avoids CSS import ordering issues. */
+```
+
+### Scrollbar border-radius Deviation
+The custom scrollbar style in `globals.css` uses `border-radius: 3px` on the thumb, violating the zero border-radius brutalist rule. Should be `0`.
 
 ## Project-Specific Standards
 
 ### Visual Fidelity Checklist
 - [x] WCAG AAA: skip link, focus-visible, reduced motion, sr-only utility
 - [x] Dual theme with FOUC prevention script
+- [x] System preference detection (`prefers-color-scheme`)
 - [x] Error boundaries per section
 - [x] Consolidated `Project` type with `noUncheckedIndexedAccess`
 - [x] Security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy)
 - [x] OG/Twitter metadata + JSON-LD structured data
+- [x] Centralized site config (`site-config.ts`)
+- [x] Contact API with server-side validation + rate limiting
+- [x] All CSS variables defined in `@theme` with day overrides
+- [x] Hash routing aligned with actual section IDs
+- [x] Theme target unified on `<html>`
+- [x] Dead code archived to `_archive/` directories
 - [ ] 28px visible background grid (both themes)
 - [ ] Kinetic typography: scroll velocity -> font-weight (200-950)
 - [ ] Grain overlay (human fingerprint)
 - [ ] Machine Mode overlay with terminal aesthetics
 - [ ] Pointer parallax on hero portrait
 - [ ] Portrait assets in `/public/portraits/`
-- [ ] 14 missing CSS variables defined in `@theme`
-- [ ] Hash routing section names aligned with actual section IDs
+- [ ] Email service integration for contact form
+- [ ] Error reporting (Sentry integration)
+- [ ] SSR for SEO
+- [ ] Fix scrollbar `border-radius: 3px` -> `0`
 
 ### Environment Variables
 | Variable | Purpose | Required |
 |----------|---------|----------|
 | `DATABASE_URL` | PostgreSQL connection string | No (app runs without DB) |
-| `NEXT_PUBLIC_SITE_URL` | Site URL for metadata | No (currently unused; `metadataBase` is hardcoded) |
+| `NEXT_PUBLIC_SITE_URL` | Site URL for `metadataBase` in `layout.tsx` | No (defaults to `https://nicholasyun.com`) |
 
 ## Remediation History
 
@@ -233,3 +220,20 @@ The following files are never imported by any active component and should be del
 | Missing security headers | Added X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy |
 | Missing OG/Twitter metadata | Added comprehensive metadata in `layout.tsx` |
 | Missing structured data | Added JSON-LD `Person` schema in `layout.tsx` |
+
+### Remediation 3 (design tokens, routing, architecture)
+
+| Issue | Resolution |
+|-------|-----------|
+| 14 undefined CSS variables in active components | Defined all in `@theme`: `--font-display`, `--spacing-double`, `--spacing-half`, `--spacing-quarter`, `--transition-fast`, `--shadow-brutal`, `--shadow-brutal-sm`, `--color-text-inverse`, `--color-border-subtle`, `--color-bg-sunken`, `--color-bg-elevated`, `--color-error`, `--color-accent-subtle` |
+| Day theme incomplete | Added day-theme overrides for ALL semantic tokens (inverse, subtle, sunken, elevated, error, accent-subtle, shadows) |
+| Hash routing mismatch (`VALID_SECTIONS` != actual IDs) | Updated `useRouteHash` to `["hero","about","projects","skills","experience","blog","terminal","contact"]` |
+| Theme target inconsistency (`<html>` vs `<body>`) | Unified on `document.documentElement` in both `ThemeScript` and `PortfolioApp` |
+| System preference ignored | Added `prefers-color-scheme` detection in `ThemeScript` and `PortfolioApp` |
+| Contact info scattered across components | Created `src/lib/site-config.ts` as single source of truth; imported by Footer, Navigation, Terminal, layout.tsx |
+| `metadataBase` hardcoded as `example.com` | Now uses `NEXT_PUBLIC_SITE_URL` env var with `https://nicholasyun.com` fallback |
+| `NEXT_PUBLIC_SITE_URL` defined but unused | Now consumed in `layout.tsx` |
+| Contact form simulated with `setTimeout` | Replaced with real `POST /api/contact` endpoint with validation + rate limiting |
+| No rate limiting on API routes | Created `src/lib/rate-limit.ts` with sliding window algorithm; applied to `/api/contact` |
+| Duplicate skip-link in `layout.tsx` and `PortfolioApp.tsx` | Removed from `PortfolioApp.tsx`; kept in `layout.tsx` only |
+| Dead/dormant code mixed with active code | Moved 14 dormant components to `_archive/`, 5 lib files to `lib/_archive/`, 2 hooks to `hooks/_archive/` |
