@@ -33,7 +33,7 @@ Avant-garde digital installation porting the Nicholas Yun portfolio from a Vite 
 - **`optimizeFonts`**: Removed in Next.js 16 — do NOT add to `next.config.ts`.
 
 ### Design System & Styling
-- **Brutalist Enforcement**: `border-radius: 0px !important` is enforced globally. Note: scrollbar thumb currently uses `border-radius: 3px` — this is a known deviation.
+- **Brutalist Enforcement**: `border-radius: 0px !important` is enforced globally, including scrollbar thumb (fixed in Remediation 4).
 - **28px Grid**: Layout is governed by a 28px mathematical backbone (`--spacing-grid` in `@theme`). Derived: `--spacing-double` (56px), `--spacing-half` (14px), `--spacing-quarter` (7px).
 - **Typography Hierarchy**:
   - **Editorial**: `Cormorant Garamond` (Headings/Narrative) — `var(--font-editorial)` / `var(--font-serif)` / `var(--font-display)`.
@@ -41,16 +41,18 @@ Avant-garde digital installation porting the Nicholas Yun portfolio from a Vite 
   - **Body**: `DM Sans` (General content, replaces Inter) — `var(--font-body)` / `var(--font-sans)`.
 - **Theme System**: Uses `data-theme="night"` / `data-theme="day"` on `<html>`. CSS selectors target `[data-theme="day"]`. NOT class-based (`theme-night` / `theme-day`). System preference (`prefers-color-scheme`) is detected when no stored value exists.
 - **CSS Variable Naming**: The canonical convention uses `--color-` prefix (e.g., `--color-border`, `--color-text-primary`, `--color-bg`). Archived components in `_archive/` use shorthand names (`--border-color`, `--text-primary`) that are NOT defined — see Gotchas.
+- **Contrast Ratios**: All `--color-text-muted` values pass WCAG AA (Night: `#918983` = 5.76:1, Day: `#6b6560` = 5.06:1). Fixed in Remediation 4.
 
 ### Architecture & Routing
 - **Client-Side Orchestrator**: Most portfolio logic runs in `src/app/PortfolioApp.tsx` (Client Component with `"use client"`). Note: this file is in `src/app/`, NOT `src/components/`.
 - **Entry Point**: `src/app/page.tsx` is a Client Component that dynamically imports `PortfolioApp` from `@/app/PortfolioApp` with `ssr: false`. Uses `react-error-boundary` (not the custom `ErrorBoundary` component).
-- **Hash Routing**: Preserved via `useRouteHash` hook. `VALID_SECTIONS` is aligned with actual section IDs: `["hero","about","projects","skills","experience","blog","terminal","contact"]`.
+- **Hash Routing**: Preserved via `useRouteHash` hook. `VALID_SECTIONS` is aligned with actual section IDs: `["hero","about","projects","skills","experience","blog","terminal","contact"]`. Focus management moves keyboard focus to section headings after navigation.
 - **Site Configuration**: Centralized in `src/lib/site-config.ts` — name, email, social links, URL. All components that need this data import from here.
 - **Static Content**: Active data comes from `src/lib/projects.ts`, `src/lib/skills.ts`, `src/lib/timeline.ts`. The file `src/lib/_archive/data.ts` is **archived dead code** (never imported by active components).
 - **Lazy Loading**: Below-the-fold sections use `React.lazy()` + `Suspense` for code splitting.
 - **Error Boundaries**: Two systems coexist — `react-error-boundary` at the page level (`page.tsx`) and a custom class-based `ErrorBoundary` per section (in `PortfolioApp.tsx`).
 - **Rate Limiting**: `src/lib/rate-limit.ts` provides an in-memory sliding window rate limiter. Applied to `/api/contact`. For multi-instance deployments, replace with Redis/Upstash.
+- **Drizzle Config**: `drizzle.config.ts` (not `.json`) reads `DATABASE_URL` from environment. Throws a clear error if the variable is missing.
 
 ### Component Classification
 **Active** (17, used by `PortfolioApp.tsx`): Navigation, HeroKinetic, SectionBlock, ErrorBoundary, AccessibilityProvider, BentoGrid, ProjectsSection, ProjectCard, SkillsSection, Timeline, BlogSection, Terminal, ContactSection, Footer, ThemeSwitch, ScrollReveal, ThemeScript.
@@ -62,6 +64,7 @@ Avant-garde digital installation porting the Nicholas Yun portfolio from a Vite 
 ### Type System
 - **`Project` type consolidated** — Single canonical definition in `src/lib/types.ts`, re-exported from `src/lib/projects.ts`. Fields: `id`, `title`, `description`, `role`, `period`, `category`, `tech` (readonly string[]), `links: ProjectLink` (with `live?` and `repo?`), `image?`, `featured?`.
 - **`SiteConfig` interface** — Defined in `types.ts`, implemented as `const` in `site-config.ts`. Single source of truth for name, email, URLs.
+- **`ContactApiResponse` discriminated union** — Added in Remediation 4. `ContactApiSuccess | ContactApiError` with `success` discriminant. Used by `/api/contact` and `ContactSection`.
 - **Archived types in `types.ts`**: `AboutPillar`, `ParsedCollectionItem`, `Collection`, `ParsedPortfolioItem`, `MachineOverlayData`, `SocialIconVariant` — only imported by archived components.
 - **`noUncheckedIndexedAccess: true`** — Array index access returns `T | undefined`. Always use `?.` or `??`.
 
@@ -83,7 +86,13 @@ Avant-garde digital installation porting the Nicholas Yun portfolio from a Vite 
 | `npx drizzle-kit push` | Sync schema to DB |
 | `npx drizzle-kit studio` | Open DB explorer |
 
-> Database is **optional**. Without `DATABASE_URL`, the app runs normally — DB features are disabled gracefully (returns 503 on `/api/health`).
+> Database is **optional**. Without `DATABASE_URL`, the app runs normally — DB features are disabled gracefully (returns 503 on `/api/health`). Note: `drizzle.config.ts` will throw if `DATABASE_URL` is missing; this is intentional since Drizzle Kit commands require it.
+
+### Environment Variables
+| Variable | Purpose | Required |
+|----------|---------|----------|
+| `DATABASE_URL` | PostgreSQL connection string | No (app runs without DB; Drizzle Kit requires it) |
+| `NEXT_PUBLIC_SITE_URL` | Site URL for `metadataBase` in `layout.tsx` | No (defaults to `https://nicholasyun.com`) |
 
 ## Testing Strategy
 
@@ -133,11 +142,8 @@ Theme switching uses `data-theme="night"` / `data-theme="day"` set on `document.
 ### Rate Limiter Is In-Memory Only
 `src/lib/rate-limit.ts` uses a `Map` for storage. This does not persist across server instances or restarts. For multi-instance deployments (Vercel, Docker), replace with Redis/Upstash rate limiting.
 
-### `drizzle.config.json` Hardcoded Credentials
-Contains `postgresql://postgres:postgres@127.0.0.1:5432/app_db`. Must use environment variable instead.
-
-### `useAccessibility()` Hook Never Consumed
-`AccessibilityProvider` provides `prefersReducedMotion` and `prefersHighContrast` via context, but no child component uses `useAccessibility()`. Components that need reduced-motion checks use `useReducedMotion()` directly or inline `window.matchMedia`. This should be consolidated.
+### `useAccessibility()` and `useReducedMotion()` Are Redundant
+`AccessibilityProvider` provides `prefersReducedMotion` via context (simplified in Remediation 4 — removed unused `prefersHighContrast`). However, `HeroKinetic` and `ScrollReveal` import `useReducedMotion()` directly instead of consuming the context. These two systems should be consolidated — either have all components use the context hook, or remove `AccessibilityProvider` and use the standalone hook everywhere.
 
 ### Missing Portrait Assets
 Archived `data.ts` references `/portraits/*.webp` files that don't exist in `public/`. Either add the assets or remove the references.
@@ -151,8 +157,14 @@ Archived `data.ts` references `/portraits/*.webp` files that don't exist in `pub
    NOT via @import in globals.css. This avoids CSS import ordering issues. */
 ```
 
-### Scrollbar border-radius Deviation
-The custom scrollbar style in `globals.css` uses `border-radius: 3px` on the thumb, violating the zero border-radius brutalist rule. Should be `0`.
+### `drizzle.config.ts` Throws Without DATABASE_URL
+The config file throws a descriptive error if `DATABASE_URL` is not set. This is intentional for Drizzle Kit commands. The main application handles a missing database gracefully (returns 503 on DB-dependent endpoints).
+
+### Remediation Docs May Reference Non-Existent Files
+Remediation_4.md was written without access to the actual codebase and referenced ~15 files that don't exist (`ParticleField.tsx`, `CustomCursor.tsx`, `CursorTrail.tsx`, `GlitchText.tsx`, `DayNightToggle.tsx`, `AccessibilityMenu.tsx`, `TerminalEmulator.tsx`, `PersistentTerminal.tsx`, `ScrollProgress.tsx`, `useAccessibility.ts`, `projectsData.ts`, `About.tsx`, `Projects.tsx`, `Skills.tsx`, `Contact.tsx`, `Hero.tsx`). Always validate remediation proposals against the actual file structure before applying.
+
+### `ContactApiResponse` Is a Discriminated Union
+API responses from `/api/contact` use `ContactApiResponse = ContactApiSuccess | ContactApiError`. TypeScript narrows the type automatically when you check `data.success`. Do NOT access `data.error` without first checking `data.success === false`, and do NOT access `data.message` without checking `data.success === true`.
 
 ## Project-Specific Standards
 
@@ -170,6 +182,13 @@ The custom scrollbar style in `globals.css` uses `border-radius: 3px` on the thu
 - [x] Hash routing aligned with actual section IDs
 - [x] Theme target unified on `<html>`
 - [x] Dead code archived to `_archive/` directories
+- [x] Scrollbar `border-radius: 0` (brutalist consistency)
+- [x] `drizzle.config.ts` uses env vars (no hardcoded credentials)
+- [x] `.env.example` created with all required/optional variables documented
+- [x] Text-muted contrast ratios pass WCAG AA in both themes
+- [x] Focus management on hash navigation for keyboard users
+- [x] Animation components respect `useReducedMotion`
+- [x] `ContactApiResponse` discriminated union for type-safe API responses
 - [ ] 28px visible background grid (both themes)
 - [ ] Kinetic typography: scroll velocity -> font-weight (200-950)
 - [ ] Grain overlay (human fingerprint)
@@ -179,13 +198,7 @@ The custom scrollbar style in `globals.css` uses `border-radius: 3px` on the thu
 - [ ] Email service integration for contact form
 - [ ] Error reporting (Sentry integration)
 - [ ] SSR for SEO
-- [ ] Fix scrollbar `border-radius: 3px` -> `0`
-
-### Environment Variables
-| Variable | Purpose | Required |
-|----------|---------|----------|
-| `DATABASE_URL` | PostgreSQL connection string | No (app runs without DB) |
-| `NEXT_PUBLIC_SITE_URL` | Site URL for `metadataBase` in `layout.tsx` | No (defaults to `https://nicholasyun.com`) |
+- [ ] Consolidate `useAccessibility()` context vs. standalone `useReducedMotion()`
 
 ## Remediation History
 
@@ -237,3 +250,18 @@ The custom scrollbar style in `globals.css` uses `border-radius: 3px` on the thu
 | No rate limiting on API routes | Created `src/lib/rate-limit.ts` with sliding window algorithm; applied to `/api/contact` |
 | Duplicate skip-link in `layout.tsx` and `PortfolioApp.tsx` | Removed from `PortfolioApp.tsx`; kept in `layout.tsx` only |
 | Dead/dormant code mixed with active code | Moved 14 dormant components to `_archive/`, 5 lib files to `lib/_archive/`, 2 hooks to `hooks/_archive/` |
+
+### Remediation 4 (accessibility, security, type safety)
+
+| Issue | Resolution |
+|-------|-----------|
+| Scrollbar `border-radius: 3px` violated zero-radius brutalist rule | Changed to `border-radius: 0` in `globals.css` |
+| `drizzle.config.json` had hardcoded `postgres:postgres` credentials | Converted to `drizzle.config.ts` reading `DATABASE_URL` from environment; throws clear error if missing |
+| No `.env.example` file | Created `.env.example` with `DATABASE_URL` and `NEXT_PUBLIC_SITE_URL` documented |
+| Contact API responses untyped | Added `ContactApiResponse` discriminated union (`ContactApiSuccess \| ContactApiError`) to `types.ts`; updated `route.ts` and `ContactSection` |
+| `prefersHighContrast` in `AccessibilityProvider` was never consumed and had no implementation | Removed from interface, context, and provider — dead feature with no color palette |
+| `HeroKinetic` and `ScrollReveal` used inline `window.matchMedia` instead of `useReducedMotion` hook | Updated both to import and use `useReducedMotion()` from `@/hooks/useReducedMotion` |
+| Text-muted contrast ratios failed WCAG AA | Night: `#6b6560` → `#918983` (3.45:1 → 5.76:1); Day: `#8a8478` → `#6b6560` (3.28:1 → 5.06:1) |
+| No focus management after hash navigation | Added `requestAnimationFrame` + `tabindex="-1"` + `focus()` in `useRouteHash.setActiveSection` to move keyboard focus to section headings |
+| ARIA attributes on interactive widgets | Verified already present — `ThemeSwitch` has `role="switch"` + `aria-checked`, `Navigation` has `aria-current`, `Terminal` has `role="log"` + `aria-live="polite"` |
+

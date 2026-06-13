@@ -24,13 +24,13 @@ An avant-garde digital installation balancing **Tactile Brutalism** with **High-
 
 ## Design System
 
-- **Core Aesthetic**: Tactile Brutalism (Zero border-radius, visible grids).
+- **Core Aesthetic**: Tactile Brutalism (Zero border-radius globally, including scrollbars, visible grids).
 - **Mathematical Grid**: 28px visible background grid governing all spacing (`--spacing-grid`).
 - **Typography Hierarchy**:
   - **Editorial**: *Cormorant Garamond* — Heading/Narrative (`--font-editorial` / `--font-serif` / `--font-display`).
   - **Utility**: *IBM Plex Mono* — Labels/Machine Mode (`--font-utility` / `--font-mono`).
   - **Body**: *DM Sans* — General content (`--font-body` / `--font-sans`), replaces Inter for anti-generic identity.
-- **Dual Theme**: High-contrast "Night" (Dark) and warm "Day" (Cream) modes, toggled via `data-theme` attribute on `<html>`. FOUC prevention via inline `ThemeScript` in `layout.tsx`. System preference detection (`prefers-color-scheme`) when no stored value exists.
+- **Dual Theme**: High-contrast "Night" (Dark) and warm "Day" (Cream) modes, toggled via `data-theme` attribute on `<html>`. FOUC prevention via inline `ThemeScript` in `layout.tsx`. System preference detection (`prefers-color-scheme`) when no stored value exists. All text-muted colors pass WCAG AA contrast ratios in both themes.
 
 ## File Hierarchy
 
@@ -39,6 +39,7 @@ An avant-garde digital installation balancing **Tactile Brutalism** with **High-
 - `src/hooks/` — Custom interaction logic: 2 active (`useRouteHash`, `useReducedMotion`), 2 archived in `src/hooks/_archive/`.
 - `src/lib/` — Static content arrays (`projects.ts`, `skills.ts`, `timeline.ts`), TypeScript interfaces (`types.ts`), centralized site config (`site-config.ts`), rate limiting utility (`rate-limit.ts`). 5 archived files in `src/lib/_archive/`.
 - `src/db/` — Drizzle schema and database configuration (optional — app runs without `DATABASE_URL`).
+- `drizzle.config.ts` — Drizzle Kit configuration, reads `DATABASE_URL` from environment (converted from hardcoded JSON in Remediation 4).
 - `public/` — Static assets (favicon only; portrait assets pending).
 
 ## Quick Start
@@ -52,7 +53,7 @@ An avant-garde digital installation balancing **Tactile Brutalism** with **High-
 
 ```bash
 npm install
-cp .env.example .env   # Configure your database URL (optional)
+cp .env.example .env.local   # Configure your database URL and site URL (all optional)
 ```
 
 ### Development
@@ -82,6 +83,7 @@ npm run build      # Production build (runs typecheck + next build)
 | **6: Remediation 1** | Complete | 40 files updated, build errors resolved, typecheck passing |
 | **7: Remediation 2** | Complete | 14 files updated, `Project` type consolidated, `noUncheckedIndexedAccess` enabled, 34 type errors resolved |
 | **8: Remediation 3** | Complete | All 14 missing CSS variables defined in `@theme` with day overrides, hash routing aligned, theme target unified on `<html>`, system preference detection added, site config centralized (`site-config.ts`), contact API endpoint with rate limiting, dead code archived to `_archive/` directories |
+| **9: Remediation 4** | Complete | Scrollbar `border-radius` fixed to 0, `drizzle.config.json` converted to `.ts` with env vars, `.env.example` created, `ContactApiResponse` discriminated union added, `prefersHighContrast` removed, `useReducedMotion` hook adopted in animation components, text-muted contrast ratios fixed to WCAG AA, focus management added to `useRouteHash` |
 
 ## Testing
 
@@ -105,6 +107,17 @@ npm run build      # Production build (runs typecheck + next build)
 | Cannot find module `@/components/PortfolioApp` | `PortfolioApp.tsx` lives in `src/app/`, not `src/components/` | Import from `@/app/PortfolioApp` |
 | `useRouteHash` destructuring mismatch | Hook returns a tuple `[string, fn]`, not an object | Destructure as `[currentHash, navigateTo]` not `{ currentHash, navigateTo }` |
 | `Project` type missing `tags`/`github`/`live` fields | Old Vite-era shape; consolidated `Project` uses `tech`, `links.repo`, `links.live` | Update imports to use `@/lib/projects` re-export |
+| `ContactApiResponse` type not found | Type added in Remediation 4 | Import from `@/lib/types` — it is a discriminated union for API responses |
+| `drizzle.config.ts` throws on startup | `DATABASE_URL` environment variable not set | Copy `.env.example` to `.env.local` and configure your database URL |
+
+### Visual Issues
+
+| Symptom | Cause | Fix |
+| :--- | :--- | :--- |
+| Text appears too faint in Night theme | Pre-Remediation 4 `--color-text-muted` was `#6b6560` (3.45:1 on dark bg) | Now fixed to `#918983` (5.76:1) — ensure you have the latest `globals.css` |
+| Text appears too faint in Day theme | Pre-Remediation 4 `--color-text-muted` was `#8a8478` (3.28:1 on light bg) | Now fixed to `#6b6560` (5.06:1) — ensure you have the latest `globals.css` |
+| Keyboard focus doesn't move after hash navigation | Pre-Remediation 4 `useRouteHash` had no focus management | Now fixed — `useRouteHash` moves focus to the section heading via `tabindex="-1"` + `focus()` |
+| Scrollbar has rounded corners | Pre-Remediation 4 used `border-radius: 3px` | Now fixed to `border-radius: 0` — ensure you have the latest `globals.css` |
 
 ### CSS Variables Not Resolving
 
@@ -118,22 +131,24 @@ Archived components use custom Tailwind classes (`font-utility`, `font-editorial
 
 The theme system uses `localStorage` with the key `"theme"`. `ThemeScript` (inline in `layout.tsx`) reads from localStorage and falls back to system preference (`prefers-color-scheme`). Both `ThemeScript` and `PortfolioApp` now target `document.documentElement` consistently. If theme fails to persist, check that localStorage is available (not blocked by private browsing).
 
+### Drizzle Config Fails Without DATABASE_URL
+
+The `drizzle.config.ts` file throws an error if `DATABASE_URL` is not set. This is intentional — Drizzle Kit commands (`push`, `studio`, `generate`) require a database connection. The main application runs fine without it (DB features are optional), but Drizzle Kit itself needs the URL.
+
 ## Known Issues
 
 ### Moderate
 
-1. **`drizzle.config.json` hardcoded credentials** — Contains `postgres:postgres` instead of an environment variable. Replace with `process.env.DATABASE_URL` or `.env` variable before any deployment.
-2. **Contact API logs to console** — The `/api/contact` endpoint validates and rate-limits requests, but only logs submissions to the server console (see `TODO` in `route.ts`). A real email service (Resend, SendGrid, etc.) needs to be integrated before production use.
-3. **No error reporting** — `error.tsx` has a `console.error` placeholder for Sentry or similar. No structured error reporting exists.
-4. **Analytics table never written to** — The `analytics` table schema exists and the health endpoint checks DB connectivity, but no code ever inserts rows.
-5. **Missing portrait assets** — Archived `data.ts` references `/portraits/*.webp` files that don't exist in `public/`.
-6. **No SSR** — `page.tsx` is a Client Component with `ssr: false`, so search engines see only the loading state. Consider re-enabling SSR with `Suspense` boundaries for SEO.
+1. **Contact API logs to console** — The `/api/contact` endpoint validates and rate-limits requests, but only logs submissions to the server console (see `TODO` in `route.ts`). A real email service (Resend, SendGrid, etc.) needs to be integrated before production use.
+2. **No error reporting** — `error.tsx` has a `console.error` placeholder for Sentry or similar. No structured error reporting exists.
+3. **Analytics table never written to** — The `analytics` table schema exists and the health endpoint checks DB connectivity, but no code ever inserts rows.
+4. **Missing portrait assets** — Archived `data.ts` references `/portraits/*.webp` files that don't exist in `public/`.
+5. **No SSR** — `page.tsx` is a Client Component with `ssr: false`, so search engines see only the loading state. Consider re-enabling SSR with `Suspense` boundaries for SEO.
 
 ### Low
 
-7. **`useAccessibility()` hook never consumed** — `AccessibilityProvider` exports a context hook (`useAccessibility`) that provides `prefersReducedMotion` and `prefersHighContrast`. No child component consumes it; they use `useReducedMotion()` directly or check `window.matchMedia` inline.
-8. **Archived components use old CSS variable names** — Components in `_archive/` reference shorthand variable names (`--border-color`, `--text-primary`, etc.) that don't exist in `@theme`. Must be updated before reintegration.
-9. **Scrollbar `border-radius: 3px`** — The custom scrollbar style in `globals.css` uses `border-radius: 3px`, which violates the zero border-radius brutalist rule. Should be `border-radius: 0`.
+6. **`useAccessibility()` hook still not consumed** — `AccessibilityProvider` was simplified in Remediation 4 (removed unused `prefersHighContrast`), and `HeroKinetic`/`ScrollReveal` now use `useReducedMotion()` directly instead of inline `window.matchMedia`. However, no component consumes the context hook from `AccessibilityProvider` — the two systems (`useAccessibility` context vs. standalone `useReducedMotion` hook) remain redundant.
+7. **Archived components use old CSS variable names** — Components in `_archive/` reference shorthand variable names (`--border-color`, `--text-primary`, etc.) that don't exist in `@theme`. Must be updated before reintegration.
 
 ## Lessons Learnt
 
@@ -152,20 +167,25 @@ The theme system uses `localStorage` with the key `"theme"`. `ThemeScript` (inli
 13. **Hash routing section names must match actual IDs** — When `VALID_SECTIONS` in `useRouteHash` diverges from actual section IDs in `PortfolioApp`, `aria-current` indicators and active link highlighting silently break for mismatched sections. Keep these in sync.
 14. **Rate limiting is essential for public API routes** — Without rate limiting, the contact form endpoint is vulnerable to abuse. Even a simple in-memory sliding window algorithm (as implemented in `rate-limit.ts`) provides meaningful protection for single-instance deployments.
 15. **Archiving dormant code reduces confusion** — Moving unused components, hooks, and lib files to `_archive/` directories makes it immediately clear what code is active vs. dormant, reducing the risk that developers accidentally import dead code.
+16. **Remediation docs may reference files that don't exist** — Remediation_4.md was written without access to the actual codebase and referenced ~15 files that don't exist in the project (e.g., `ParticleField.tsx`, `CustomCursor.tsx`, `DayNightToggle.tsx`, `AccessibilityMenu.tsx`, `useAccessibility.ts`, `projectsData.ts`). Always validate each remediation proposal against the actual file structure before applying changes.
+17. **Discriminated unions for API responses prevent type errors** — Adding `ContactApiResponse = ContactApiSuccess | ContactApiError` with a `success` discriminant field enables TypeScript narrowing. Code that checks `if (data.success)` automatically narrows to the correct branch, preventing access to `error` on success responses and `message` on error responses.
+18. **Contrast ratios must be verified in both themes** — The same hex value can pass WCAG AA on a dark background but fail on a light background (or vice versa). The Night theme needed a *lighter* muted text (`#918983`) while the Day theme needed a *darker* muted text (`#6b6560`). Always test both themes independently.
+19. **Remove unused features rather than leaving them half-implemented** — `prefersHighContrast` was defined in `AccessibilityProvider` but never consumed, and no high-contrast color palette existed. Removing it entirely was cleaner than leaving a dead toggle that implied functionality that didn't work.
+20. **Focus management is essential for keyboard navigation** — Hash-based routing that scrolls without moving focus creates a trap for keyboard users who must Tab through all intermediate elements. Adding `tabindex="-1"` + `focus()` on the target heading after navigation brings keyboard users directly to the new section.
+21. **Never hardcode credentials in config files** — `drizzle.config.json` had `postgres:postgres` in plaintext. Converting to `drizzle.config.ts` with `process.env.DATABASE_URL` eliminated the security risk and aligned with the `.env.example` pattern. The config now throws a clear error message if the variable is missing.
 
 ## Recommendations
 
-1. **Fix `drizzle.config.json`** — Use `process.env.DATABASE_URL` instead of hardcoded credentials. This is the only remaining file with a plaintext database URL.
-2. **Integrate an email service** — Replace the `console.log` in `/api/contact/route.ts` with a real email provider (Resend, SendGrid, etc.) before deploying to production.
-3. **Add error reporting** — Integrate Sentry or a similar service in `error.tsx` and the global error boundary.
-4. **Consume `useAccessibility()`** — Replace direct `window.matchMedia("(prefers-reduced-motion: reduce)")` checks in components with the context hook from `AccessibilityProvider` for consistency.
-5. **Fix scrollbar `border-radius`** — Change `border-radius: 3px` to `border-radius: 0` in the scrollbar styles in `globals.css` to maintain brutalist consistency.
-6. **Reconcile CSS variable naming for archived components** — If reintegrating any archived components, either add alias variables in `globals.css` or rewrite them to use the `--color-` prefix convention.
-7. **Add portrait assets** — Place webp images in `public/portraits/` if needed, or remove references from archived `data.ts`.
-8. **Consider re-enabling SSR** — Replace `ssr: false` with `Suspense` boundaries for better SEO while keeping interactive features client-side.
-9. **Write to analytics table** — Either implement middleware to track page views or remove the unused `analytics` table schema.
-10. **Replace in-memory rate limiting for production** — The current `rate-limit.ts` uses a `Map` which doesn't persist across instances. For multi-instance deployments (Vercel, Docker), replace with Redis/Upstash rate limiting.
+1. **Integrate an email service** — Replace the `console.log` in `/api/contact/route.ts` with a real email provider (Resend, SendGrid, etc.) before deploying to production.
+2. **Add error reporting** — Integrate Sentry or a similar service in `error.tsx` and the global error boundary.
+3. **Consolidate `useAccessibility()` and `useReducedMotion()`** — `AccessibilityProvider` provides `prefersReducedMotion` via context, but `HeroKinetic` and `ScrollReveal` import `useReducedMotion()` directly. Either have all components consume the context hook, or remove `AccessibilityProvider` and use the standalone hook everywhere.
+4. **Reconcile CSS variable naming for archived components** — If reintegrating any archived components, either add alias variables in `globals.css` or rewrite them to use the `--color-` prefix convention.
+5. **Add portrait assets** — Place webp images in `public/portraits/` if needed, or remove references from archived `data.ts`.
+6. **Consider re-enabling SSR** — Replace `ssr: false` with `Suspense` boundaries for better SEO while keeping interactive features client-side.
+7. **Write to analytics table** — Either implement middleware to track page views or remove the unused `analytics` table schema.
+8. **Replace in-memory rate limiting for production** — The current `rate-limit.ts` uses a `Map` which doesn't persist across instances. For multi-instance deployments (Vercel, Docker), replace with Redis/Upstash rate limiting.
 
 ## License
 
 Proprietary — All rights reserved.
+

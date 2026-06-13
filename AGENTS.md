@@ -5,11 +5,11 @@ This is a high-signal brief for agents working on "The Engineered Soul" portfoli
 ## Core Identity
 - **Stack**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Drizzle ORM, PostgreSQL.
 - **Aesthetic**: "Tactile Brutalism" + "High-End Editorial".
-- **Primary Design Constraint**: **Zero border-radius** globally (note: scrollbar thumb has `border-radius: 3px` — known deviation). Use the **28px mathematical grid** for all spacing.
+- **Primary Design Constraint**: **Zero border-radius** globally (including scrollbar thumb — fixed in Remediation 4). Use the **28px mathematical grid** for all spacing.
 
 ## Current State
 
-The project has passed three remediation phases. Build and typecheck pass cleanly. The SPA orchestrator (`PortfolioApp.tsx`) is implemented and wired into `page.tsx`. All CSS variables referenced by active components are defined in `@theme` with day-theme overrides. Hash routing is aligned with actual section IDs. Theme targeting is unified on `document.documentElement`. Site configuration is centralized in `site-config.ts`. Contact form submits to a real API endpoint with rate limiting. Dormant code has been archived to `_archive/` directories.
+The project has passed four remediation phases. Build and typecheck pass cleanly. The SPA orchestrator (`PortfolioApp.tsx`) is implemented and wired into `page.tsx`. All CSS variables referenced by active components are defined in `@theme` with day-theme overrides. Hash routing is aligned with actual section IDs and includes focus management for keyboard users. Theme targeting is unified on `document.documentElement`. Site configuration is centralized in `site-config.ts`. Contact form submits to a real API endpoint with rate limiting and typed responses (`ContactApiResponse` discriminated union). All text-muted colors pass WCAG AA contrast ratios in both themes. Animation components (`HeroKinetic`, `ScrollReveal`) use `useReducedMotion` hook. Dormant code has been archived to `_archive/` directories. Drizzle config uses environment variables (no hardcoded credentials). `.env.example` is present.
 
 **Active components** (17, wired in `PortfolioApp.tsx`): Navigation, HeroKinetic, SectionBlock, ErrorBoundary, AccessibilityProvider, BentoGrid, ProjectsSection, ProjectCard, SkillsSection, Timeline, BlogSection, Terminal, ContactSection, Footer, ThemeSwitch, ScrollReveal, ThemeScript.
 
@@ -52,17 +52,23 @@ When no `localStorage` value exists, `ThemeScript` checks `window.matchMedia('(p
 ### CSS Import Order (Build-Breaking)
 `globals.css` uses `@import "tailwindcss"` as the first import. Google Fonts are loaded via `<link>` tags in `layout.tsx` `<head>`, NOT via `@import url()` in CSS. If you ever add `@import url()` for fonts back to `globals.css`, it MUST come before `@import "tailwindcss"`.
 
-### `useAccessibility()` Hook Never Consumed
-`AccessibilityProvider` provides `prefersReducedMotion` and `prefersHighContrast` via context, but no child component uses `useAccessibility()`. Components that need reduced-motion checks use `useReducedMotion()` directly or inline `window.matchMedia`. This should be consolidated.
+### `useAccessibility()` and `useReducedMotion()` Are Redundant
+`AccessibilityProvider` provides `prefersReducedMotion` via context (simplified in Remediation 4 — removed unused `prefersHighContrast`). However, `HeroKinetic` and `ScrollReveal` import `useReducedMotion()` directly instead of consuming the context. These two systems should be consolidated — either have all components use the context hook, or remove `AccessibilityProvider` and use the standalone hook everywhere.
 
 ### Missing Portrait Assets
 Archived `data.ts` references `/portraits/*.webp` files that don't exist in `public/`. Either add the assets or remove the references.
 
-### `drizzle.config.json` Hardcoded Credentials
-Contains `postgresql://postgres:postgres@127.0.0.1:5432/app_db`. Must use environment variable instead.
+### `drizzle.config.ts` Throws Without DATABASE_URL
+The config file throws a descriptive error if `DATABASE_URL` is not set. This is intentional for Drizzle Kit commands (`push`, `studio`, `generate`). The main application handles a missing database gracefully (returns 503 on DB-dependent endpoints).
 
-### Scrollbar border-radius Deviation
-The custom scrollbar style in `globals.css` uses `border-radius: 3px` on the thumb, violating the zero border-radius brutalist rule. Should be `0`.
+### Remediation Docs May Reference Non-Existent Files
+Remediation_4.md was written without access to the actual codebase and referenced ~15 files that don't exist (`ParticleField.tsx`, `CustomCursor.tsx`, `CursorTrail.tsx`, `GlitchText.tsx`, `DayNightToggle.tsx`, `AccessibilityMenu.tsx`, `TerminalEmulator.tsx`, `PersistentTerminal.tsx`, `ScrollProgress.tsx`, `useAccessibility.ts`, `projectsData.ts`, `About.tsx`, `Projects.tsx`, `Skills.tsx`, `Contact.tsx`, `Hero.tsx`). Always validate remediation proposals against the actual file structure before applying.
+
+### `ContactApiResponse` Is a Discriminated Union
+API responses from `/api/contact` use `ContactApiResponse = ContactApiSuccess | ContactApiError`. TypeScript narrows the type automatically when you check `data.success`. Do NOT access `data.error` without first checking `data.success === false`.
+
+### Text-Muted Contrast Ratios Must Be Checked in Both Themes
+The Night theme needs a lighter muted text (`#918983`) while the Day theme needs a darker muted text (`#6b6560`). The same hex value can pass WCAG AA on one background but fail on the other. Always test contrast in both themes.
 
 ## Developer Commands
 | Task | Command |
@@ -86,8 +92,10 @@ The custom scrollbar style in `globals.css` uses `border-radius: 3px` on the thu
 - **CSS Variables**: Always use the `--color-` prefix convention (e.g., `--color-border`, `--color-text-primary`).
 - **Data**: Active data comes from `projects.ts`, `skills.ts`, `timeline.ts`. `data.ts` is archived dead code — do NOT import from it.
 - **Config**: Site-wide constants (name, email, social links, URLs) come from `site-config.ts`. Do NOT hardcode these values in components.
-- **Types**: `Project` is defined in `types.ts` and re-exported from `projects.ts`. Import from `@/lib/projects` for project-related code. `SiteConfig` is in `types.ts`, implemented in `site-config.ts`.
+- **Types**: `Project` is defined in `types.ts` and re-exported from `projects.ts`. Import from `@/lib/projects` for project-related code. `SiteConfig` is in `types.ts`, implemented in `site-config.ts`. `ContactApiResponse` is in `types.ts` — use it for all contact API response handling.
 - **Rate Limiting**: Use `rateLimit()` and `getClientIp()` from `@/lib/rate-limit` for any new API routes.
+- **Drizzle Config**: `drizzle.config.ts` reads `DATABASE_URL` from environment. Do NOT hardcode credentials.
+- **Environment Variables**: Copy `.env.example` to `.env.local`. All variables are optional (app runs without them).
 
 ## Critical "Never" List
 - **Never** use `border-radius` (unless explicitly requested for a specific non-UI element).
@@ -105,19 +113,20 @@ The custom scrollbar style in `globals.css` uses `border-radius: 3px` on the thu
 - **Never** import data from `@/lib/data` — it's archived dead code with stale section names.
 - **Never** hardcode site config (name, email, URLs) in components — import from `@/lib/site-config`.
 - **Never** create an API route without rate limiting — use `rateLimit()` from `@/lib/rate-limit`.
+- **Never** hardcode credentials in config files — use `process.env.DATABASE_URL` or other environment variables.
+- **Never** access `ContactApiResponse.error` without checking `data.success === false` first (discriminated union narrowing).
+- **Never** trust remediation docs without validating file paths against the actual codebase structure.
 
 ## Outstanding Issues (Priority Order)
 
-1. **Fix `drizzle.config.json`** — Use environment variable for database URL instead of hardcoded credentials.
-2. **Integrate email service** — Replace `console.log` in `/api/contact/route.ts` with Resend, SendGrid, or similar.
-3. **Add error reporting** — Integrate Sentry in `error.tsx` and the global error boundary.
-4. **Consume `useAccessibility()`** — Replace scattered `window.matchMedia` checks with the context hook from `AccessibilityProvider` for consistency.
-5. **Fix scrollbar `border-radius`** — Change `border-radius: 3px` to `border-radius: 0` in `globals.css` scrollbar styles.
-6. **Reconcile CSS variable naming for archived components** — If reintegrating any, add aliases in `globals.css` or rewrite to use `--color-` prefix.
-7. **Add portrait assets** — Place webp images in `public/portraits/` if needed.
-8. **Consider re-enabling SSR** — Replace `ssr: false` with `Suspense` boundaries for SEO.
-9. **Write to analytics table** — Implement middleware to track page views or remove unused `analytics` schema.
-10. **Replace in-memory rate limiting for production** — For multi-instance deployments, use Redis/Upstash.
+1. **Integrate email service** — Replace `console.log` in `/api/contact/route.ts` with Resend, SendGrid, or similar.
+2. **Add error reporting** — Integrate Sentry in `error.tsx` and the global error boundary.
+3. **Consolidate `useAccessibility()` and `useReducedMotion()`** — Either have all components consume the context hook from `AccessibilityProvider`, or remove the provider and use the standalone `useReducedMotion` hook everywhere. The current redundancy creates confusion about which system to use.
+4. **Reconcile CSS variable naming for archived components** — If reintegrating any, add aliases in `globals.css` or rewrite to use `--color-` prefix.
+5. **Add portrait assets** — Place webp images in `public/portraits/` if needed.
+6. **Consider re-enabling SSR** — Replace `ssr: false` with `Suspense` boundaries for SEO.
+7. **Write to analytics table** — Implement middleware to track page views or remove unused `analytics` schema.
+8. **Replace in-memory rate limiting for production** — For multi-instance deployments, use Redis/Upstash.
 
 ## Lessons Learnt
 
@@ -136,3 +145,10 @@ The custom scrollbar style in `globals.css` uses `border-radius: 3px` on the thu
 13. **Hash routing section names must match actual IDs** — When `VALID_SECTIONS` diverges from actual section IDs, `aria-current` indicators silently break.
 14. **Rate limiting is essential for public API routes** — Even a simple in-memory algorithm provides meaningful protection.
 15. **Archiving dormant code reduces confusion** — `_archive/` directories make it immediately clear what code is active vs. dormant, reducing the risk of importing dead code.
+16. **Remediation docs may reference non-existent files** — Remediation_4.md was written without access to the actual codebase. Always validate each proposal against the real file structure before applying changes.
+17. **Discriminated unions prevent type errors on API responses** — `ContactApiResponse = ContactApiSuccess | ContactApiError` with a `success` discriminant enables TypeScript narrowing. Code that checks `if (data.success)` automatically gets the correct type.
+18. **Contrast ratios must be verified in both themes independently** — The Night theme needed a lighter muted text (`#918983` = 5.76:1) while the Day theme needed a darker muted text (`#6b6560` = 5.06:1). The same hex value can pass AA on one background but fail on the other.
+19. **Remove unused features rather than leaving them half-implemented** — `prefersHighContrast` was defined in `AccessibilityProvider` but never consumed, and no high-contrast color palette existed. Removing it entirely was cleaner than leaving a dead toggle implying non-existent functionality.
+20. **Focus management is essential for keyboard navigation** — Hash-based routing that scrolls without moving focus creates a trap for keyboard users. Adding `tabindex="-1"` + `focus()` on the target heading after navigation brings keyboard users directly to the new section.
+21. **Never hardcode credentials in config files** — `drizzle.config.json` had `postgres:postgres` in plaintext. Converting to `drizzle.config.ts` with `process.env.DATABASE_URL` eliminated the security risk. The config now throws a clear error message if the variable is missing.
+
