@@ -125,3 +125,88 @@ The tar archive is ready. Here's the summary:
 2. Extract it over your repo root (it uses relative paths starting with `./`)
 3. Run `npm install` to restore `node_modules`
 4. Commit and push
+
+---
+
+Now let me read the actual source files that were modified by Remediation 4 to understand what really changed:
+Let me read more of the Remediation 4 document and also check the actual current source files:
+Now let me read the current actual source code to verify what's been changed, and also check the worklog:
+Now let me verify the current source code state to ensure documentation accuracy:
+Now I have a comprehensive understanding of the codebase state after Remediation 4. Let me systematically update all three documentation files. Here's my analysis of what changed:
+
+**Remediation 4 Changes Applied:**
+1. ✅ Scrollbar `border-radius: 3px` → `0` (brutalist consistency)
+2. ✅ Created `.env.example` with DATABASE_URL and NEXT_PUBLIC_SITE_URL
+3. ✅ Converted `drizzle.config.json` → `drizzle.config.ts` (removed hardcoded credentials)
+4. ✅ Added `ContactApiResponse` discriminated union to `types.ts`
+5. ✅ Removed unused `prefersHighContrast` from `AccessibilityProvider.tsx`
+6. ✅ Updated `HeroKinetic.tsx` and `ScrollReveal.tsx` to use `useReducedMotion` hook
+7. ✅ Fixed text-muted contrast ratios for WCAG AA (Night: 5.76:1, Day: 5.06:1)
+8. ✅ Added focus management to `useRouteHash` for keyboard users
+9. ✅ ARIA already present (verified)
+
+Let me start with README.md:
+Now let me write the updated README.md:
+Now let me update CLAUDE.md:
+Now let me update AGENTS.md:
+Now let me do a final consistency review across all three documents:
+Excellent review — let me fix all the inconsistencies found:
+Now fix CLAUDE.md — add missing gotchas, fix component count, and add lessons learnt cross-reference:
+Now fix AGENTS.md — fix component count, add ARIA verification mention, and align lesson ordering with README.md:
+Now let me verify the build still passes and run a quick final check:
+Build passes clean. Let me update the worklog and finalize:
+All three documentation files have been meticulously reviewed, updated, and cross-verified for consistency. Here's the comprehensive summary:
+
+---
+
+## Documentation Update Summary
+
+### Methodology
+Before writing a single line, I audited **20+ source files** against the existing documentation, the Remediation 4 worklog, and the Code Review Report 4 to build a precise delta of what changed vs. what the docs still listed as broken or missing.
+
+### Remediation 4 Changes Documented Across All 3 Files
+
+| # | Change | Status |
+|---|--------|--------|
+| 1 | Scrollbar `border-radius: 3px` → `0` | ✅ Documented |
+| 2 | `drizzle.config.json` → `drizzle.config.ts` with env vars | ✅ Documented |
+| 3 | `.env.example` created | ✅ Documented |
+| 4 | `ContactApiResponse` discriminated union | ✅ Documented |
+| 5 | `prefersHighContrast` removed | ✅ Documented |
+| 6 | `useReducedMotion` adopted in `HeroKinetic` + `ScrollReveal` | ✅ Documented |
+| 7 | Text-muted contrast ratios fixed to WCAG AA | ✅ Documented |
+| 8 | Focus management added to `useRouteHash` | ✅ Documented |
+| 9 | ARIA attributes verified on interactive widgets | ✅ Documented |
+
+### Issues Removed from Known Issues (Fixed in R4)
+- `drizzle.config.json` hardcoded credentials → now `drizzle.config.ts` with env vars
+- Scrollbar `border-radius: 3px` → now `0`
+- `prefersHighContrast` unused feature → now removed entirely
+
+### New Gotchas/Troubleshooting Added
+- `ContactApiResponse` discriminated union narrowing rules
+- `drizzle.config.ts` throws without `DATABASE_URL`
+- Remediation docs may reference non-existent files
+- Text-muted contrast must be verified in both themes independently
+- Visual Issues troubleshooting table (contrast, focus, scrollbar)
+- New Build Errors entries (`ContactApiResponse` type, `drizzle.config.ts` throws)
+
+### New Lessons Learnt (#16–21)
+16. Remediation docs may reference non-existent files
+17. Discriminated unions for API responses prevent type errors
+18. Contrast ratios must be verified in both themes
+19. Remove unused features rather than leaving them half-implemented
+20. Focus management is essential for keyboard navigation
+21. Never hardcode credentials in config files
+
+### Consistency Fixes Applied
+- **Archived component count**: Corrected from 14 → **15** across all 3 files
+- **Missing Known Issue**: Added "In-memory rate limiting only" to README.md
+- **Missing Gotchas in CLAUDE.md**: Added "No Error Reporting" and "Analytics Table Never Written To"
+- **Missing Lessons in CLAUDE.md**: Added "Lessons Learnt" section with key takeaways + README cross-reference
+- **Lesson ordering**: Aligned AGENTS.md lessons 5-6, 8-10 with README.md canonical order
+- **ARIA verification**: Added to R4 summary in README.md and AGENTS.md Current State
+
+### Verification
+- **TypeScript typecheck**: ✅ 0 errors
+- **Next.js production build**: ✅ Compiled, 4 routes
