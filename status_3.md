@@ -167,3 +167,61 @@ Before writing a single line, I audited **19 source files** against the existing
 - **TypeScript typecheck**: ✅ PASS — 0 errors
 - **Next.js production build**: ✅ PASS — compiled in 2.1s, 4 routes
 
+---
+
+I now have a thorough understanding of the existing v2 SKILL.md. It's comprehensive but outdated — it was written after Remediation 2 and still documents issues that Remediation 3 resolved (theme target inconsistency, 14 undefined CSS variables, hash routing mismatch, etc.). Let me create the definitive v3 SKILL.md that incorporates all knowledge through Remediation 3:
+Now let me verify completeness by checking that every key insight from the project is captured:
+All key topics are well-covered. Let me also copy it to the download directory for easy access:
+Now update the worklog:
+The comprehensive SKILL.md v3 has been created. Here's the complete summary:
+
+---
+
+## SKILL v3 — Delivered
+
+**Location**: `/home/z/my-project/personal-portfolio-next/brutalist-portfolio-nextjs_SKILL_v3.md`  
+**Also at**: `/home/z/my-project/download/brutalist-portfolio-nextjs_SKILL_v3.md`  
+**Size**: 1,384 lines | 23 sections + Type Reference
+
+### What Changed from v2 → v3
+
+| Area | v2 (After Remediation 2) | v3 (After Remediation 3) |
+|------|--------------------------|--------------------------|
+| **Theme Target** | Documented as "inconsistent — known issue" | Documented as **resolved** — unified on `<html>` with pattern + code |
+| **14 Undefined CSS Vars** | Listed as "CRITICAL — must be added" | Documented as **resolved** — complete token checklist with day overrides |
+| **Hash Routing** | `VALID_SECTIONS` mismatch documented as bug | Documented as **resolved** — critical rule for keeping in sync |
+| **Site Config** | Not mentioned | **New section**: centralized `site-config.ts` pattern + code |
+| **Rate Limiting** | Not mentioned | **New section**: full API design with `rateLimit()` + `getClientIp()` |
+| **Contact API** | Listed as "simulated with setTimeout" | Full production-grade endpoint with validation + rate limiting |
+| **Dead Code** | Listed as "dormant — in src/components/" | **Archived** to `_archive/` directories — new pattern documented |
+| **System Preference** | Not mentioned | `prefers-color-scheme` detection in ThemeScript |
+| **Anti-Patterns** | 8 | 11 (added: hardcoded config, no rate limiting, `data-theme` on body) |
+| **Lessons Learnt** | 10 | 17 (added: centralize config early, consistent theme target, hash routing sync, rate limiting essential, archiving reduces confusion, day theme coverage, don't trust docs over code) |
+| **Patterns** | 6 | 9 (added: centralized configuration, rate limiting for API routes, archived code separation) |
+| **Troubleshooting** | Build errors only | Build errors + **visual issues table** + version compatibility |
+
+### 23 Sections
+
+1. Project Execution Phases (6-phase workflow)
+2. Architecture Blueprint (SPA orchestrator in Next.js)
+3. Design System (Tactile Brutalism + High-End Editorial)
+4. CSS Strategy for Tailwind v4
+5. Theme System Design (`data-theme` on `<html>`, FOUC prevention, system preference)
+6. Component Architecture (active vs. archived)
+7. Data, Type & Configuration Strategy (site-config.ts, type consolidation)
+8. Type Safety: noUncheckedIndexedAccess Deep Dive
+9. Error Boundary Architecture (dual system)
+10. Hash Routing Design (VALID_SECTIONS sync rule)
+11. API Design: Contact Endpoint with Rate Limiting (NEW)
+12. Database as Optional Feature
+13. Accessibility (WCAG AAA)
+14. Security Headers & Metadata
+15. Build & Verification Pipeline
+16. Patterns (9 patterns)
+17. Anti-Patterns (11 anti-patterns)
+18. Troubleshooting Guide (build + visual + version tables)
+19. Remediation Methodology (7-step process)
+20. Lessons Learnt (17 lessons)
+21. Outstanding Issues & Recommendations (10 items)
+22. File Structure Reference
+23. Type Reference
