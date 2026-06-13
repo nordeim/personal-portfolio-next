@@ -35,7 +35,7 @@ An avant-garde digital installation balancing **Tactile Brutalism** with **High-
 ## File Hierarchy
 
 - `src/app/` — Next.js entry points (`layout.tsx`, `page.tsx`, `error.tsx`, `not-found.tsx`), global design system (`globals.css`), the SPA orchestrator (`PortfolioApp.tsx`), and API routes (`/api/contact`, `/api/health`).
-- `src/components/` — 17 active brutalist UI components. 14 archived components in `src/components/_archive/` (dormant from earlier iterations, awaiting integration or removal).
+- `src/components/` — 17 active brutalist UI components. 15 archived components in `src/components/_archive/` (dormant from earlier iterations, awaiting integration or removal).
 - `src/hooks/` — Custom interaction logic: 2 active (`useRouteHash`, `useReducedMotion`), 2 archived in `src/hooks/_archive/`.
 - `src/lib/` — Static content arrays (`projects.ts`, `skills.ts`, `timeline.ts`), TypeScript interfaces (`types.ts`), centralized site config (`site-config.ts`), rate limiting utility (`rate-limit.ts`). 5 archived files in `src/lib/_archive/`.
 - `src/db/` — Drizzle schema and database configuration (optional — app runs without `DATABASE_URL`).
@@ -83,7 +83,7 @@ npm run build      # Production build (runs typecheck + next build)
 | **6: Remediation 1** | Complete | 40 files updated, build errors resolved, typecheck passing |
 | **7: Remediation 2** | Complete | 14 files updated, `Project` type consolidated, `noUncheckedIndexedAccess` enabled, 34 type errors resolved |
 | **8: Remediation 3** | Complete | All 14 missing CSS variables defined in `@theme` with day overrides, hash routing aligned, theme target unified on `<html>`, system preference detection added, site config centralized (`site-config.ts`), contact API endpoint with rate limiting, dead code archived to `_archive/` directories |
-| **9: Remediation 4** | Complete | Scrollbar `border-radius` fixed to 0, `drizzle.config.json` converted to `.ts` with env vars, `.env.example` created, `ContactApiResponse` discriminated union added, `prefersHighContrast` removed, `useReducedMotion` hook adopted in animation components, text-muted contrast ratios fixed to WCAG AA, focus management added to `useRouteHash` |
+| **9: Remediation 4** | Complete | Scrollbar `border-radius` fixed to 0, `drizzle.config.json` converted to `.ts` with env vars, `.env.example` created, `ContactApiResponse` discriminated union added, `prefersHighContrast` removed, `useReducedMotion` hook adopted in animation components, text-muted contrast ratios fixed to WCAG AA, focus management added to `useRouteHash`, ARIA attributes verified on interactive widgets |
 
 ## Testing
 
@@ -149,6 +149,7 @@ The `drizzle.config.ts` file throws an error if `DATABASE_URL` is not set. This 
 
 6. **`useAccessibility()` hook still not consumed** — `AccessibilityProvider` was simplified in Remediation 4 (removed unused `prefersHighContrast`), and `HeroKinetic`/`ScrollReveal` now use `useReducedMotion()` directly instead of inline `window.matchMedia`. However, no component consumes the context hook from `AccessibilityProvider` — the two systems (`useAccessibility` context vs. standalone `useReducedMotion` hook) remain redundant.
 7. **Archived components use old CSS variable names** — Components in `_archive/` reference shorthand variable names (`--border-color`, `--text-primary`, etc.) that don't exist in `@theme`. Must be updated before reintegration.
+8. **In-memory rate limiting only** — `rate-limit.ts` uses a `Map` that doesn't persist across server instances or restarts. Suitable for single-instance deployments only; replace with Redis/Upstash for production multi-instance deployments.
 
 ## Lessons Learnt
 

@@ -57,7 +57,7 @@ Avant-garde digital installation porting the Nicholas Yun portfolio from a Vite 
 ### Component Classification
 **Active** (17, used by `PortfolioApp.tsx`): Navigation, HeroKinetic, SectionBlock, ErrorBoundary, AccessibilityProvider, BentoGrid, ProjectsSection, ProjectCard, SkillsSection, Timeline, BlogSection, Terminal, ContactSection, Footer, ThemeSwitch, ScrollReveal, ThemeScript.
 
-**Archived** (14, in `src/components/_archive/`): AboutFlow, ArchiveSpread, ArchiveItemCard, BentoTile, BrandMark, ClientOnly, CodeRain, ContentBody, DitherOverlay, GrainOverlay, LayoutShell, MachineOverlay, MobileDrawer, SocialIcon, ThemeToggle.
+**Archived** (15, in `src/components/_archive/`): AboutFlow, ArchiveSpread, ArchiveItemCard, BentoTile, BrandMark, ClientOnly, CodeRain, ContentBody, DitherOverlay, GrainOverlay, LayoutShell, MachineOverlay, MobileDrawer, SocialIcon, ThemeToggle.
 
 > Archived components have **unresolved CSS variable references** (shorthand names) and **undefined Tailwind classes**. They need remediation before integration — see Gotchas.
 
@@ -145,6 +145,12 @@ Theme switching uses `data-theme="night"` / `data-theme="day"` set on `document.
 ### `useAccessibility()` and `useReducedMotion()` Are Redundant
 `AccessibilityProvider` provides `prefersReducedMotion` via context (simplified in Remediation 4 — removed unused `prefersHighContrast`). However, `HeroKinetic` and `ScrollReveal` import `useReducedMotion()` directly instead of consuming the context. These two systems should be consolidated — either have all components use the context hook, or remove `AccessibilityProvider` and use the standalone hook everywhere.
 
+### No Error Reporting
+`error.tsx` has a `console.error` placeholder for Sentry or similar. No structured error reporting exists. Integrate Sentry or a comparable service before production.
+
+### Analytics Table Never Written To
+The `analytics` table schema exists and the health endpoint checks DB connectivity, but no code ever inserts rows. Either implement middleware to track page views or remove the unused schema.
+
 ### Missing Portrait Assets
 Archived `data.ts` references `/portraits/*.webp` files that don't exist in `public/`. Either add the assets or remove the references.
 
@@ -162,6 +168,17 @@ The config file throws a descriptive error if `DATABASE_URL` is not set. This is
 
 ### Remediation Docs May Reference Non-Existent Files
 Remediation_4.md was written without access to the actual codebase and referenced ~15 files that don't exist (`ParticleField.tsx`, `CustomCursor.tsx`, `CursorTrail.tsx`, `GlitchText.tsx`, `DayNightToggle.tsx`, `AccessibilityMenu.tsx`, `TerminalEmulator.tsx`, `PersistentTerminal.tsx`, `ScrollProgress.tsx`, `useAccessibility.ts`, `projectsData.ts`, `About.tsx`, `Projects.tsx`, `Skills.tsx`, `Contact.tsx`, `Hero.tsx`). Always validate remediation proposals against the actual file structure before applying.
+
+## Lessons Learnt
+
+See **README.md** § Lessons Learnt for the full annotated list (21 lessons across 4 remediation phases). Key takeaways:
+
+- Always validate remediation docs against the actual file structure before applying.
+- Discriminated unions for API responses prevent type errors and enable safe narrowing.
+- Contrast ratios must be tested in BOTH themes — the same hex can pass AA on dark but fail on light.
+- Remove half-implemented features entirely rather than leaving dead toggles.
+- Focus management is essential for keyboard navigation with hash-based routing.
+- Never hardcode credentials — use environment variables and create `.env.example`.
 
 ### `ContactApiResponse` Is a Discriminated Union
 API responses from `/api/contact` use `ContactApiResponse = ContactApiSuccess | ContactApiError`. TypeScript narrows the type automatically when you check `data.success`. Do NOT access `data.error` without first checking `data.success === false`, and do NOT access `data.message` without checking `data.success === true`.

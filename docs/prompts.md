@@ -14,7 +14,7 @@ yes, please meticulously plan to re-evaluate and re-validate the issues, gaps an
 
 ---
 
-Awesome meticulous job so far. Please keep up the good work. Now, please meticulously create a tar archive of the entire (remediated) codebase, excluding the `node_modules` and `.next` folders, so I can download and use it to refresh my GitHub repo.
+Awesome meticulous job so far. Please keep up the good work. Now, please meticulously create a tar archive of the entire (remediated) codebase, excluding the `node_modules` , `.next` and `.git` folders, so I can download and use it to refresh my GitHub repo.
 
 ---
 
