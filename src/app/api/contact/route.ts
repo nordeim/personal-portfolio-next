@@ -1,4 +1,5 @@
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import type { ContactApiResponse } from "@/lib/types";
 
 interface ContactPayload {
   name?: string;
@@ -35,21 +36,23 @@ function validateContact(data: ContactPayload): ValidationError[] {
   return errors;
 }
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   // Rate limiting: 5 requests per minute per IP
   const ip = getClientIp(request);
   const limit = await rateLimit(ip, { maxRequests: 5, windowMs: 60_000 });
 
   if (!limit.success) {
-    return Response.json(
-      { error: "Too many requests. Please try again later." },
-      {
-        status: 429,
-        headers: {
-          "Retry-After": String(Math.ceil((limit.retryAfterMs ?? 60_000) / 1000)),
-        },
+    const body: ContactApiResponse = {
+      success: false,
+      error: "Too many requests. Please try again later.",
+      retryAfter: Math.ceil((limit.retryAfterMs ?? 60_000) / 1000),
+    };
+    return Response.json(body, {
+      status: 429,
+      headers: {
+        "Retry-After": String(body.retryAfter),
       },
-    );
+    });
   }
 
   // Parse body
@@ -57,22 +60,31 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return Response.json({ error: "Invalid JSON body." }, { status: 400 });
+    const errorBody: ContactApiResponse = {
+      success: false,
+      error: "Invalid JSON body.",
+    };
+    return Response.json(errorBody, { status: 400 });
   }
 
   // Validate
   if (typeof body !== "object" || body === null) {
-    return Response.json({ error: "Request body must be an object." }, { status: 400 });
+    const errorBody: ContactApiResponse = {
+      success: false,
+      error: "Request body must be an object.",
+    };
+    return Response.json(errorBody, { status: 400 });
   }
 
   const data = body as ContactPayload;
   const errors = validateContact(data);
 
   if (errors.length > 0) {
-    return Response.json(
-      { error: "Validation failed.", details: errors },
-      { status: 422 },
-    );
+    const errorBody: ContactApiResponse = {
+      success: false,
+      error: "Validation failed.",
+    };
+    return Response.json(errorBody, { status: 422 });
   }
 
   // TODO: Integrate with email service (Resend, SendGrid, etc.)
@@ -83,8 +95,9 @@ export async function POST(request: Request) {
     messageLength: data.message!.trim().length,
   });
 
-  return Response.json(
-    { success: true, message: "Message received." },
-    { status: 200 },
-  );
+  const successBody: ContactApiResponse = {
+    success: true,
+    message: "Message received.",
+  };
+  return Response.json(successBody, { status: 200 });
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 interface ScrollRevealProps {
   readonly children: ReactNode;
@@ -19,15 +20,13 @@ export default function ScrollReveal({
 }: ScrollRevealProps) {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
     // Respect reduced motion — skip animation, show immediately
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
     if (prefersReducedMotion) {
       setIsVisible(true);
       return;
@@ -49,7 +48,7 @@ export default function ScrollReveal({
     return () => {
       observer.unobserve(el);
     };
-  }, [threshold]);
+  }, [threshold, prefersReducedMotion]);
 
   const getTransform = (): string => {
     if (isVisible) return "translate3d(0, 0, 0)";

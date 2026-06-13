@@ -97,3 +97,20 @@ export interface MachineOverlayData {
 }
 
 export type SocialIconVariant = "mail" | "linkedin" | "instagram" | "github";
+
+// ============================================================================
+// API Response Types
+// ============================================================================
+
+interface ContactApiSuccess {
+  success: true;
+  message: string;
+}
+
+interface ContactApiError {
+  success: false;
+  error: string;
+  retryAfter?: number;
+}
+
+export type ContactApiResponse = ContactApiSuccess | ContactApiError;

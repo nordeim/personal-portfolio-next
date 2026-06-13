@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 const HEADLINE_LINES = [
   "The Engineered",
@@ -12,11 +13,11 @@ const SUBTITLE = "Full-Stack Developer · Designer · Engineer";
 export default function HeroKinetic() {
   const [isAnimated, setIsAnimated] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     // Respect reduced motion preference
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mq.matches) {
+    if (prefersReducedMotion) {
       setIsAnimated(true);
       return;
     }
@@ -27,7 +28,7 @@ export default function HeroKinetic() {
     });
 
     return () => cancelAnimationFrame(timer);
-  }, []);
+  }, [prefersReducedMotion]);
 
   const containerStyle: CSSProperties = {
     display: "flex",

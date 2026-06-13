@@ -32,6 +32,18 @@ export function useRouteHash(): [string, (section: string) => void] {
       : "hero";
     window.location.hash = valid;
     setActiveSectionState(valid);
+
+    // Move focus to the section heading for keyboard users
+    requestAnimationFrame(() => {
+      const sectionEl = document.getElementById(valid);
+      if (sectionEl) {
+        const heading = sectionEl.querySelector("h1, h2, h3");
+        if (heading instanceof HTMLElement) {
+          heading.setAttribute("tabindex", "-1");
+          heading.focus({ preventScroll: true });
+        }
+      }
+    });
   }, []);
 
   useEffect(() => {

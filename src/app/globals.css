@@ -10,7 +10,7 @@
 
   --color-text-primary: #f0ece4;
   --color-text-secondary: #a8a29e;
-  --color-text-muted: #6b6560;
+  --color-text-muted: #918983;
 
   --color-accent: #e8c547;
   --color-accent-hover: #f0d060;
@@ -72,7 +72,7 @@
 
   --color-text-primary: #1a1612;
   --color-text-secondary: #5c5650;
-  --color-text-muted: #8a8478;
+  --color-text-muted: #6b6560;
 
   --color-accent: #b8860b;
   --color-accent-hover: #996f08;
@@ -182,7 +182,7 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: var(--color-border-strong);
-  border-radius: 3px;
+  border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
