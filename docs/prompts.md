@@ -14,10 +14,6 @@ yes, please meticulously plan to re-evaluate and re-validate the issues, gaps an
 
 ---
 
-Now, please clone the GitHub repo using `https://github.com/nordeim/personal-portfolio-next.git`, then meticulously review the included `CLAUDE.md`, `AGENT.md`, `status_2.md`, `Code_Review_Report_3.md` and `README.md` to have a deep understanding of the WHAT, WHY and HOW of the project and its codebase design and architecture. Next, meticulously review the included `Remediation_3.md` to apply changes after validation. When finished, run typecheck and run build to check for further errors.
-
----
-
 Awesome meticulous job so far. Please keep up the good work. Now, please meticulously create a tar archive of the entire (remediated) codebase, excluding the `node_modules` and `.next` folders, so I can download and use it to refresh my GitHub repo.
 
 ---
