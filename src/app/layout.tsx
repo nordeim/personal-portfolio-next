@@ -1,6 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ThemeScript } from "@/components/ThemeScript";
+import { siteConfig } from "@/lib/site-config";
 import "./globals.css";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://nicholasyun.com";
 
 export const metadata: Metadata = {
   title: {
@@ -19,11 +22,11 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Nicholas Yun" }],
   creator: "Nicholas Yun",
-  metadataBase: new URL("https://nicholasyun.com"),
+  metadataBase: new URL(SITE_URL),
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://nicholasyun.com",
+    url: SITE_URL,
     siteName: "Nicholas Yun",
     title: "Nicholas Yun — Software Engineer & Designer",
     description:
@@ -57,6 +60,15 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+    { media: "(prefers-color-scheme: light)", color: "#f5f0e8" },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -65,12 +77,12 @@ export default function RootLayout({
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Person",
-    name: "Nicholas Yun",
+    name: siteConfig.name,
     jobTitle: "Software Engineer & Designer",
-    url: "https://nicholasyun.com",
+    url: siteConfig.url,
     sameAs: [
-      "https://github.com/nordeim",
-      "https://linkedin.com/in/nicholasyun",
+      siteConfig.githubUrl,
+      siteConfig.linkedinUrl,
     ],
   };
 

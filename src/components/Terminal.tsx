@@ -7,6 +7,7 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
+import { siteConfig } from "@/lib/site-config";
 
 interface TerminalLine {
   readonly type: "input" | "output" | "error";
@@ -31,12 +32,12 @@ const COMMANDS: Record<string, () => string> = {
       "  help      — Show this message",
     ].join("\n"),
   about: () =>
-    "Nicholas Yun — Full-Stack Developer, Designer, and Engineer. Crafting digital experiences with precision and intention.",
+    `${siteConfig.name} — Full-Stack Developer, Designer, and Engineer. Crafting digital experiences with precision and intention.`,
   projects: () =>
     "Navigate to #projects to view the project gallery, or use the Projects section above.",
   skills: () =>
     "TypeScript · React · Next.js · Node.js · PostgreSQL · Tailwind CSS · Design Systems",
-  contact: () => "Email: hello@nicholasyun.com · GitHub: github.com/nordeim",
+  contact: () => `Email: ${siteConfig.email} · GitHub: github.com/${siteConfig.github}`,
   clear: () => "__CLEAR__",
 };
 

@@ -16,6 +16,14 @@
   --color-accent-hover: #f0d060;
   --color-accent-muted: #e8c54733;
 
+  /* ── Semantic Color Tokens (Night) ────────────── */
+  --color-text-inverse: #0a0a0a;
+  --color-border-subtle: #1a1a1a;
+  --color-bg-sunken: #070707;
+  --color-bg-elevated: #222222;
+  --color-error: #c0392b;
+  --color-accent-subtle: #e8c5471a;
+
   /* ── Font Families ────────────────────────────── */
   --font-sans: "DM Sans", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", "Fira Code", monospace;
@@ -25,6 +33,7 @@
   --font-editorial: "Cormorant Garamond", "Georgia", serif;
   --font-utility: "IBM Plex Mono", "Fira Code", monospace;
   --font-body: "DM Sans", system-ui, sans-serif;
+  --font-display: "Cormorant Garamond", "Georgia", serif;
 
   /* ── Z-Index Scale ────────────────────────────── */
   --z-index-grain: 50;
@@ -36,6 +45,16 @@
 
   /* ── Spacing ──────────────────────────────────── */
   --spacing-grid: 28px;
+  --spacing-double: 56px;
+  --spacing-half: 14px;
+  --spacing-quarter: 7px;
+
+  /* ── Transitions ──────────────────────────────── */
+  --transition-fast: 150ms ease;
+
+  /* ── Shadows ──────────────────────────────────── */
+  --shadow-brutal: 4px 4px 0 0 var(--color-border-strong);
+  --shadow-brutal-sm: 2px 2px 0 0 var(--color-border);
 
   /* ── Animations ───────────────────────────────── */
   --animate-fade-in: fade-in 0.6s ease forwards;
@@ -58,6 +77,18 @@
   --color-accent: #b8860b;
   --color-accent-hover: #996f08;
   --color-accent-muted: #b8860b22;
+
+  /* Day-specific semantic overrides */
+  --color-text-inverse: #f5f0e8;
+  --color-border-subtle: #e5e0d6;
+  --color-bg-sunken: #ece7dd;
+  --color-bg-elevated: #faf6ef;
+  --color-error: #a93226;
+  --color-accent-subtle: #b8860b1a;
+
+  /* Day theme shadow overrides (lighter, more natural) */
+  --shadow-brutal: 4px 4px 0 0 var(--color-border-strong);
+  --shadow-brutal-sm: 2px 2px 0 0 var(--color-border);
 }
 
 /* ── Base Styles ───────────────────────────────── */

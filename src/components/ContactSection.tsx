@@ -79,8 +79,21 @@ export default function ContactSection() {
       setSubmitError("");
 
       try {
-        // Simulate form submission (replace with actual API endpoint)
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        // Submit to the contact API endpoint
+        const response = await fetch("/api/contact", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => null);
+          const serverMessage =
+            data && typeof data === "object" && "error" in data && typeof data.error === "string"
+              ? data.error
+              : "Something went wrong. Please try again or email me directly.";
+          throw new Error(serverMessage);
+        }
 
         setStatus("success");
         setFormData(INITIAL_FORM);

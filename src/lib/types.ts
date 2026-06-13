@@ -18,6 +18,7 @@ export interface SiteConfig {
   linkedin: string;
   linkedinUrl: string;
   location: string;
+  url: string;
 }
 
 export interface ProjectLink {

@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback } from "react";
 
 const VALID_SECTIONS = [
   "hero",
-  "who",
-  "work",
+  "about",
+  "projects",
   "skills",
-  "music",
-  "now",
+  "experience",
+  "blog",
+  "terminal",
   "contact",
 ] as const;
 
@@ -24,8 +25,10 @@ export function useRouteHash(): [string, (section: string) => void] {
   );
 
   const setActiveSection = useCallback((section: string) => {
-    const valid = VALID_SECTIONS.includes(section as Section)
-      ? section
+    // Strip leading # if present (Navigation passes "#about" etc.)
+    const clean = section.replace(/^#/, "");
+    const valid = VALID_SECTIONS.includes(clean as Section)
+      ? clean
       : "hero";
     window.location.hash = valid;
     setActiveSectionState(valid);

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import ThemeSwitch from "./ThemeSwitch";
+import { siteConfig } from "@/lib/site-config";
 
 interface NavLink {
   readonly label: string;
@@ -110,7 +111,7 @@ export default function Navigation({
           handleNavClick("#hero");
         }}
         onKeyDown={(e) => handleKeyDown(e, "#hero")}
-        aria-label="Nicholas Yun — Go to top"
+        aria-label={`${siteConfig.name} — Go to top`}
         style={{
           fontWeight: 600,
           textDecoration: "none",
@@ -132,7 +133,7 @@ export default function Navigation({
         }}
       >
         {NAV_LINKS.map((link) => {
-          const isActive = currentHash === link.href;
+          const isActive = currentHash === link.href.replace("#", "");
           return (
             <li key={link.href}>
               <a
@@ -222,7 +223,7 @@ export default function Navigation({
           }}
         >
           {NAV_LINKS.map((link) => {
-            const isActive = currentHash === link.href;
+            const isActive = currentHash === link.href.replace("#", "");
             return (
               <a
                 key={link.href}

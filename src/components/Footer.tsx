@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfig } from "@/lib/site-config";
+
 const CURRENT_YEAR = new Date().getFullYear();
 
 export default function Footer() {
@@ -19,7 +21,7 @@ export default function Footer() {
       }}
     >
       <p>
-        &copy; {CURRENT_YEAR} Nicholas Yun. Engineered with intention.
+        &copy; {CURRENT_YEAR} {siteConfig.name}. Engineered with intention.
       </p>
 
       <nav aria-label="Footer navigation">
@@ -33,7 +35,7 @@ export default function Footer() {
         >
           <li>
             <a
-              href="https://github.com/nordeim"
+              href={siteConfig.githubUrl}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="GitHub profile (opens in new tab)"
@@ -48,8 +50,8 @@ export default function Footer() {
           </li>
           <li>
             <a
-              href="mailto:hello@nicholasyun.com"
-              aria-label="Send email to Nicholas Yun"
+              href={`mailto:${siteConfig.email}`}
+              aria-label={`Send email to ${siteConfig.name}`}
               style={{
                 color: "var(--color-text-muted)",
                 textDecoration: "none",

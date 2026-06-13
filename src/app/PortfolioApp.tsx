@@ -73,11 +73,11 @@ export default function PortfolioApp() {
     ).matches;
     const theme = savedTheme || (prefersDark ? "night" : "day");
 
-    document.body.setAttribute("data-theme", theme);
+    document.documentElement.setAttribute("data-theme", theme);
   }, [isMounted]);
 
   const handleThemeChange = useCallback((theme: "day" | "night") => {
-    document.body.setAttribute("data-theme", theme);
+    document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
 
     // Announce theme change to screen readers
@@ -116,10 +116,6 @@ export default function PortfolioApp() {
         aria-atomic="true"
         className="sr-only"
       />
-
-      <a href="#main-content" className="skip-link">
-        Skip to main content
-      </a>
 
       <header role="banner">
         <Navigation currentHash={currentHash} onNavigate={navigateTo} onThemeChange={handleThemeChange} />
