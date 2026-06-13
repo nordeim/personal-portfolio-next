@@ -48,6 +48,13 @@ please meticulously plan to provide an awesome one line caption that describes t
 
 ---
 
+awesome meticulous job so far. please keep up the good work. now, please meticulously plan to create a comprehensive SKILL.md that distill your knowledge and expertise gained so far for this project, the goal of the skill is to be able to reproduce similar architectural design and with the same phased approach and  with all the considerations, insights gained, lessons learnt, troubleshooting tips, necessary patterns and anti-patterns for other coding agents to observe and comply. this new skill should include all the necessary details and elements from the original skills you used to plan and execute the phases.
+Additional details to include in the new SKILL.md:
+- Distill all your knowledge and know-how about the current project 
+- Distill your knowledge about the purpose, design and architecture of the current project into a guide on designing and building a similar codebase by any other coding agents.
+
+---
+
 Awesome meticulous job so far. Please keep up the good work. Now, please meticulously plan to re-evaluate and re-validate your code review and audit findings and recommendations against the current codebase to confirm the alignment and to identify the root causes and the optomal fixes. Then meticulously plan to create a detailed remediation plan with ToDo list to resolve and fix the identified/outstanding issues and gaps. Review and validate the remediation plan against the codebase again to check for accurate alignment before proceeding to execute it meticulously. use TDD approach to make code changes.
 Now analyze the comprehensive audit report. Next create a detailed remediation plan with a TDD approach, validating it against the codebase. The audit has several key findings, including security vulnerabilities, bugs, and architecture issues. You need to meticulously verify these against the actual source to identify root causes and plan the safest, most effective fixes.
 # Task list:
