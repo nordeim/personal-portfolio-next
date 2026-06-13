@@ -1,32 +1,39 @@
 {
-  "name": "nextjs-postgresql-template",
+  "name": "personal-portfolio-next",
+  "version": "2.0.0",
+  "description": "The Engineered Soul — A personal portfolio built with Next.js 16, React 19, and Tailwind CSS v4. Tactile Brutalism design.",
+  "author": "Nicholas Yun",
+  "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --turbopack",
+    "build": "npm run typecheck && next build",
     "start": "next start",
-    "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "dotenv": "17.3.1",
-    "drizzle-orm": "0.45.2",
-    "next": "16.2.6",
-    "pg": "8.20.0",
-    "react": "19.2.6",
-    "react-dom": "19.2.6"
+    "drizzle-orm": "^0.45.2",
+    "next": "^16.2.9",
+    "postgres": "^3.4.7",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "4.1.17",
-    "@types/node": "22.19.15",
-    "@types/pg": "8.18.0",
-    "@types/react": "19.2.14",
-    "@types/react-dom": "19.2.3",
-    "drizzle-kit": "0.31.10",
-    "eslint": "9.39.4",
-    "eslint-config-next": "16.2.6",
-    "postcss": "8.5.8",
-    "tailwindcss": "4.1.17",
-    "typescript": "5.9.3"
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/node": "^24.0.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "drizzle-kit": "^0.31.4",
+    "eslint": "^9.29.0",
+    "eslint-config-next": "^16.2.6",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }

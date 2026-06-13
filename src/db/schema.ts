@@ -1,3 +1,11 @@
-// Keep the schema entrypoint present so models can define tables and run
-// `npx drizzle-kit push` without bootstrapping Drizzle config first.
-export {};
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+
+export const analytics = pgTable("analytics", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  path: text("path").notNull(),
+  referrer: text("referrer"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});

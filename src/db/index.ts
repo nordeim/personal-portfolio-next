@@ -1,24 +1,22 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import * as schema from "./schema";
 
 const databaseUrl = process.env.DATABASE_URL;
 
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL is required");
+// Gracefully handle missing DATABASE_URL — DB features are optional
+function createDb() {
+  if (!databaseUrl) {
+    return null;
+  }
+
+  try {
+    const client = postgres(databaseUrl);
+    return drizzle(client, { schema });
+  } catch {
+    console.warn("Failed to connect to database. Analytics features disabled.");
+    return null;
+  }
 }
 
-const globalForDb = globalThis as typeof globalThis & {
-  __arenaNextJsPostgresqlPool?: Pool;
-};
-
-export const pool =
-  globalForDb.__arenaNextJsPostgresqlPool ??
-  new Pool({
-    connectionString: databaseUrl,
-  });
-
-if (process.env.NODE_ENV !== "production") {
-  globalForDb.__arenaNextJsPostgresqlPool = pool;
-}
-
-export const db = drizzle(pool);
+export const db = createDb();

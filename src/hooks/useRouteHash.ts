@@ -1,70 +1,67 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 
-export interface ParsedRoute {
-  raw: string;
-  section: string | null;
-  collection: string | null;
-  item: string | null;
-  isArchive: boolean;
+interface UseRouteHashReturn {
+  readonly currentHash: string;
+  readonly navigateTo: (hash: string) => void;
 }
 
-const EMPTY: ParsedRoute = {
-  raw: '',
-  section: null,
-  collection: null,
-  item: null,
-  isArchive: false,
-};
+export function useRouteHash(): UseRouteHashReturn {
+  const [currentHash, setCurrentHash] = useState<string>("");
 
-function parseHash(hash: string): ParsedRoute {
-  if (!hash || hash === '#' || hash === '#/') return EMPTY;
-
-  const cleaned = hash.startsWith('#') ? hash.slice(1) : hash;
-  const segments = cleaned.split('/').filter(Boolean);
-
-  if (segments.length === 0) return EMPTY;
-
-  const section = segments[0] ?? null;
-  const collection = segments[1] ?? null;
-  const item = segments[2] ?? null;
-
-  return {
-    raw: hash,
-    section,
-    collection,
-    item,
-    isArchive: section === 'collection' && collection !== null,
-  };
-}
-
-/**
- * Listens to `hashchange` and `load` events and returns a parsed route.
- * Routes supported:
- *   #collection/{slug}              → collection list
- *   #collection/{slug}/{itemSlug}   → collection item detail
- *   #portfolio/{slug}               → portfolio item detail
- */
-export function useRouteHash(): ParsedRoute {
-  const [route, setRoute] = useState<ParsedRoute>(EMPTY);
-
+  // Read initial hash on mount
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    const hash = window.location.hash || "#hero";
+    setCurrentHash(hash);
 
-    const update = (): void => {
-      setRoute(parseHash(window.location.hash));
-    };
-
-    update();
-    window.addEventListener('hashchange', update);
-    window.addEventListener('load', update);
-
-    return () => {
-      window.removeEventListener('hashchange', update);
-      window.removeEventListener('load', update);
-    };
+    // If there's a hash in the URL, scroll to it
+    const target = document.getElementById(hash.slice(1));
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth" });
+    }
   }, []);
 
-  return route;
+  // Listen for hash changes (browser back/forward)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash || "#hero";
+      setCurrentHash(hash);
+
+      // Move focus to the target section for accessibility
+      const target = document.getElementById(hash.slice(1));
+      if (target) {
+        target.setAttribute("tabindex", "-1");
+        target.focus({ preventScroll: true });
+        target.addEventListener(
+          "blur",
+          () => target.removeAttribute("tabindex"),
+          { once: true },
+        );
+      }
+    };
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
+  const navigateTo = useCallback((hash: string) => {
+    window.location.hash = hash;
+
+    const target = document.getElementById(hash.slice(1));
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth" });
+
+      // Move focus for screen readers
+      target.setAttribute("tabindex", "-1");
+      target.focus({ preventScroll: true });
+      target.addEventListener(
+        "blur",
+        () => target.removeAttribute("tabindex"),
+        { once: true },
+      );
+    }
+  }, []);
+
+  return { currentHash, navigateTo } as const;
 }

@@ -1,50 +1,112 @@
-'use client';
+"use client";
 
-import type { ParsedPortfolioItem } from '@/lib/types';
-import { BentoTile, type CategoryTexture } from './BentoTile';
+import { useMemo } from "react";
+import ScrollReveal from "./ScrollReveal";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
-interface BentoGridProps {
-  projects: ParsedPortfolioItem[];
-  onOpen: (slug: string) => void;
+interface BentoItem {
+  readonly id: string;
+  readonly title: string;
+  readonly description: string;
+  readonly span?: 1 | 2;
 }
 
-function getTexture(category: string): CategoryTexture {
-  const c = category.toLowerCase();
-  if (c.includes('code') || c.includes('experiment') || c.includes('lab')) return 'mono';
-  if (c.includes('poetry') || c.includes('story') || c.includes('essay')) return 'serif';
-  if (c.includes('art') || c.includes('photo')) return 'image';
-  return 'sans';
-}
+const BENTO_ITEMS: readonly BentoItem[] = [
+  {
+    id: "philosophy",
+    title: "Philosophy",
+    description:
+      "I believe in engineering with intention — every line of code, every pixel, every interaction should serve a purpose. No decoration without function.",
+    span: 2,
+  },
+  {
+    id: "frontend",
+    title: "Frontend",
+    description:
+      "React, Next.js, TypeScript, and modern CSS. I build interfaces that are accessible, performant, and visually distinctive.",
+  },
+  {
+    id: "backend",
+    title: "Backend",
+    description:
+      "Node.js, PostgreSQL, and API design. Robust systems that scale with clean data architecture.",
+  },
+  {
+    id: "design",
+    title: "Design Systems",
+    description:
+      "Creating cohesive visual languages that bridge design intent and engineering reality. Tokens, components, and documentation.",
+    span: 2,
+  },
+] as const;
 
-function getSpan(index: number, total: number): 'wide' | 'tall' | 'square' | 'auto' {
-  if (index === 0) return 'wide';
-  if (index === total - 1) return 'wide';
-  if (index % 4 === 1) return 'tall';
-  return 'square';
-}
+export default function BentoGrid() {
+  const prefersReducedMotion = useReducedMotion();
 
-export function BentoGrid({ projects, onOpen }: BentoGridProps) {
-  if (projects.length === 0) {
+  const items = useMemo(() => BENTO_ITEMS, []);
+
+  if (items.length === 0) {
     return (
-      <div className="border border-[var(--border-color)] p-12 text-center">
-        <p className="font-editorial text-2xl mb-2">The shelf is empty.</p>
-        <p className="font-utility text-xs uppercase tracking-[0.18em] text-[var(--text-muted)]">
-          No portfolio items found.
-        </p>
-      </div>
+      <p
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "0.875rem",
+          color: "var(--color-text-muted)",
+        }}
+      >
+        No content available.
+      </p>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 auto-rows-[minmax(280px,auto)] gap-0 border-l border-t border-[var(--border-color)]">
-      {projects.map((project, i) => (
-        <BentoTile
-          key={`tile-${project.slug}`}
-          project={project}
-          texture={getTexture(project.category)}
-          span={getSpan(i, projects.length)}
-          onOpen={onOpen}
-        />
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+        gap: "var(--spacing-grid)",
+      }}
+    >
+      {items.map((item, index) => (
+        <ScrollReveal
+          key={item.id}
+          delay={prefersReducedMotion ? 0 : index * 0.1}
+        >
+          <article
+            style={{
+              gridColumn: item.span === 2 ? "span 2" : "span 1",
+              padding: "var(--spacing-grid)",
+              border: "2px solid var(--color-border)",
+              background: "var(--color-surface)",
+              boxShadow: "var(--shadow-brutal-sm)",
+              transition: prefersReducedMotion
+                ? "none"
+                : "transform var(--transition-fast), box-shadow var(--transition-fast)",
+            }}
+          >
+            <h3
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "1.5rem",
+                fontWeight: 600,
+                marginBottom: "var(--spacing-half)",
+                color: "var(--color-text-primary)",
+              }}
+            >
+              {item.title}
+            </h3>
+            <p
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "0.9375rem",
+                lineHeight: 1.65,
+                color: "var(--color-text-secondary)",
+              }}
+            >
+              {item.description}
+            </p>
+          </article>
+        </ScrollReveal>
       ))}
     </div>
   );
