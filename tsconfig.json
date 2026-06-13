@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2017",
     "lib": [
       "dom",
       "dom.iterable",
@@ -27,10 +27,7 @@
         "./src/*"
       ]
     },
-    "forceConsistentCasingInFileNames": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noUncheckedIndexedAccess": true
   },
   "include": [
     "next-env.d.ts",

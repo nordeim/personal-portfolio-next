@@ -17,15 +17,14 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=()",
   },
-  {
-    key: "X-DNS-Prefetch-Control",
-    value: "on",
-  },
 ];
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   reactStrictMode: true,
-
+  images: {
+    formats: ["image/avif", "image/webp"],
+  },
   async headers() {
     return [
       {
@@ -34,7 +33,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-
 };
 
 export default nextConfig;
