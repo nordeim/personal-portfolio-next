@@ -10,6 +10,10 @@ yes, please meticulously proceed with your audit plan based on your best recomme
 
 ---
 
+yes, please meticulously plan to re-evaluate and re-validate the issues, gaps and bugs identified in your code review and audit, then meticulously plan to create a comprehensive remediation plan with detailed todo list, review and validate the remediation plan against the codebase again to check for alignment. finally execute the remediation plan to apply the validated fixes.
+
+---
+
 Awesome meticulous job so far. Please keep up the good work. Now, please meticulously create a tar archive of the entire (remediated) codebase, excluding the `node_modules` and `.next` folders, so I can download and use it to refresh my GitHub repo.
 
 ---
