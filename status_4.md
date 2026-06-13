@@ -102,3 +102,26 @@ All tasks complete. Here's the comprehensive summary:
 | Zero `any` types | ✅ Confirmed |
 | Zero non-zero `border-radius` | ✅ Confirmed |
 | Text-muted WCAG AA | ✅ Night: 5.76:1, Day: 5.06:1 |
+
+---
+
+The tar archive is ready. Here's the summary:
+
+**📦 Archive Created:**
+- **File:** `/home/z/my-project/download/personal-portfolio-next-remediated_4.tar.gz`
+- **Size:** 407 KB
+- **Contents:** 113 entries covering the full remediated codebase
+
+**✅ Verified:**
+- `node_modules/` — **excluded** ✓
+- `.next/` — **excluded** ✓
+- `.git/` — **excluded** ✓
+- Previous archive files (`*_remediated*.tar.gz`, `claw-code-persona-definition.zip`) — **excluded** ✓
+- All source files (`src/`, `public/`, configs, docs) — **present** ✓
+- All Remediation 4 changes are baked in — this is the post-remediation state
+
+**To refresh your GitHub repo:**
+1. Download the archive
+2. Extract it over your repo root (it uses relative paths starting with `./`)
+3. Run `npm install` to restore `node_modules`
+4. Commit and push
