@@ -1,0 +1,339 @@
+@import 'tailwindcss';
+
+/* ============================================================
+   The Engineered Soul — Design System
+   Tactile Brutalism + High-End Editorial
+   Nicholas Yun Portfolio (v2.0) — Next.js Edition
+   ============================================================ */
+
+@theme {
+  /* Grid Unit — the mathematical backbone */
+  --unit: 28px;
+  --spacing-grid: 28px;
+  --spacing-section: 104px;
+
+  /* Colors — Dark Theme (default) */
+  --color-ink: #07080d;
+  --color-ink-light: #15151b;
+  --color-surface: #11131d;
+  --color-surface-elevated: #1a1c2e;
+  --color-text: #ffffff;
+  --color-text-secondary: rgba(255, 255, 255, 0.68);
+  --color-text-muted: rgba(255, 255, 255, 0.52);
+  --color-text-faint: rgba(255, 255, 255, 0.38);
+  --color-border: rgba(255, 255, 255, 0.13);
+  --color-border-strong: rgba(255, 255, 255, 0.24);
+  --color-border-accent: rgba(255, 255, 255, 0.18);
+
+  /* Colors — Light Theme */
+  --color-day-bg: #fff8e8;
+  --color-day-surface: #ffffff;
+  --color-day-text: #15151b;
+  --color-day-text-secondary: rgba(21, 21, 27, 0.64);
+  --color-day-border: rgba(21, 21, 27, 0.1);
+  --color-day-border-strong: rgba(21, 21, 27, 0.18);
+
+  /* Accent Colors — One per creative category */
+  --color-accent-code: #2457ff;
+  --color-accent-design: #ff5c35;
+  --color-accent-art: #00a77f;
+  --color-accent-photo: #f2b705;
+  --color-accent-poetry: #8f55ff;
+  --color-accent-story: #e5488b;
+  --color-accent-experiments: #16a3b8;
+
+  /* Fonts — Three-tier hierarchy */
+  --font-editorial: 'Cormorant Garamond', 'Noto Serif SC', Georgia, serif;
+  --font-utility: 'IBM Plex Mono', 'JetBrains Mono', monospace;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Border Radius — Brutalist defaults */
+  --radius-brutal: 0px;
+}
+
+/* ============================================================
+   Global Reset & Brutalist Enforcement
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  border-radius: 0px !important;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-ink);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ============================================================
+   The 28px Visible Grid (both themes)
+   ============================================================ */
+
+.theme-night::before,
+.theme-day::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.theme-day::before {
+  background-image:
+    linear-gradient(rgba(21, 21, 27, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(21, 21, 27, 0.04) 1px, transparent 1px);
+}
+
+/* ============================================================
+   Theme Variables — apply via class on <html>
+   ============================================================ */
+
+.theme-night {
+  --bg-primary: var(--color-ink);
+  --bg-surface: var(--color-surface);
+  --bg-elevated: var(--color-surface-elevated);
+  --text-primary: var(--color-text);
+  --text-secondary: var(--color-text-secondary);
+  --text-muted: var(--color-text-muted);
+  --text-faint: var(--color-text-faint);
+  --border-color: var(--color-border);
+  --border-strong: var(--color-border-strong);
+  --grid-color: rgba(255, 255, 255, 0.03);
+}
+
+.theme-day {
+  --bg-primary: var(--color-day-bg);
+  --bg-surface: var(--color-day-surface);
+  --bg-elevated: var(--color-day-surface);
+  --text-primary: var(--color-day-text);
+  --text-secondary: var(--color-day-text-secondary);
+  --text-muted: var(--color-day-text-secondary);
+  --text-faint: rgba(21, 21, 27, 0.4);
+  --border-color: var(--color-day-border);
+  --border-strong: var(--color-day-border-strong);
+  --grid-color: rgba(21, 21, 27, 0.04);
+}
+
+body {
+  background-color: var(--bg-primary, var(--color-ink));
+  color: var(--text-primary, var(--color-text));
+  transition:
+    background-color 600ms ease-out,
+    color 600ms ease-out;
+}
+
+/* ============================================================
+   Typography — Kinetic Scales
+   ============================================================ */
+
+.font-editorial {
+  font-family: var(--font-editorial);
+  font-feature-settings: 'liga', 'dlig';
+  letter-spacing: -0.01em;
+}
+
+.font-utility {
+  font-family: var(--font-utility);
+  font-feature-settings: 'zero', 'ss01';
+  letter-spacing: 0.02em;
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* ============================================================
+   Focus Visible — WCAG AAA
+   ============================================================ */
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(36, 87, 255, 0.55);
+  outline-offset: 3px;
+}
+
+/* ============================================================
+   Skip Link
+   ============================================================ */
+
+.skip-link {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -160%);
+  z-index: 100;
+  background: var(--color-accent-code);
+  color: #fff;
+  padding: 12px 24px;
+  font-family: var(--font-utility);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: transform 200ms ease-out;
+}
+
+.skip-link:focus-visible {
+  transform: translate(-50%, 0);
+}
+
+/* ============================================================
+   Grain Overlay — Human Fingerprint
+   ============================================================ */
+
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* ============================================================
+   Brutalist Utilities
+   ============================================================ */
+
+.border-brutal {
+  border: 1px solid var(--border-color);
+}
+
+.border-brutal-strong {
+  border: 1px solid var(--border-strong);
+}
+
+.divide-brutal > * + * {
+  border-top: 1px solid var(--border-color);
+}
+
+/* ============================================================
+   Animations — reduced motion respected
+   ============================================================ */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 900ms ease-out forwards;
+}
+
+.animate-fade-out {
+  animation: fade-out 300ms ease-out forwards;
+}
+
+/* ============================================================
+   Reduced Motion — global override
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   Selection
+   ============================================================ */
+
+::selection {
+  background: var(--color-accent-code);
+  color: #fff;
+}
+
+/* ============================================================
+   Scrollbar — minimal, brutalist
+   ============================================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary, var(--color-ink));
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong, rgba(255, 255, 255, 0.24));
+  border: 1px solid var(--bg-primary, var(--color-ink));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-code);
+}
+
+/* ============================================================
+   Utility — Z-Index Layer Map
+   ============================================================ */
+
+.z-grid {
+  z-index: 0;
+}
+.z-hero {
+  z-index: 1;
+}
+.z-hero-controls {
+  z-index: 2;
+}
+.z-skip {
+  z-index: 20;
+}
+.z-nav {
+  z-index: 30;
+}
+.z-mobile-backdrop {
+  z-index: 35;
+}
+.z-mobile-drawer {
+  z-index: 40;
+}
+.z-machine {
+  z-index: 50;
+}
+.z-grain {
+  z-index: 9999;
+}
