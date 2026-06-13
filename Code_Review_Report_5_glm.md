@@ -1,15 +1,3 @@
-I'll start by cloning the repo and then diving into the documentation files to build a deep understanding before planning the audit.
-Now let me read all the key documentation files in parallel:
-Now let me read the full Code_Review_Report_4.md and the SKILL_v4.md since they were truncated:
-Now let me read the actual source code files to deeply understand the current state of the codebase before planning the audit:
-Now let me read the remaining critical components:
-Let me read the remaining key files:
-Now let me read the remaining data and config files:
-Now let me also check the config files and run a baseline build:
-Excellent — typecheck passes and build succeeds. Now let me also run some diagnostic scans:
-Good — no vulnerabilities. Now I have a complete picture. Let me write the comprehensive audit plan.
----
-
 ## Phase 1: ANALYZE — Complete ✅
 
 I have now meticulously read all 6 documentation files and **every single active source file** (30+ files) in the codebase. Here's my synthesized understanding:
@@ -191,10 +179,285 @@ Based on my deep analysis of every source file and all documentation, here is th
 
 This is my complete audit plan. Shall I proceed to execute the full audit and compile a comprehensive **Code Review Report 5**? I want your explicit confirmation before writing any findings to a deliverable.
 
+# Code Review Report 5
+## The Engineered Soul (v2.0) — Brutalist Portfolio Next.js Codebase Audit
 
-## Audit Complete — Code Review Report 5 Delivered ✅
+| | |
+| :--- | :--- |
+| **Project** | Nicholas Yun Personal Portfolio |
+| **Repository** | `github.com/nordeim/personal-portfolio-next` |
+| **Stack** | Next.js 16.2.9 / React 19.2.7 / Tailwind CSS v4.1.17 / TypeScript 5.9.3 |
+| **Previous Audits** | Code Review Reports 1–4, Remediations 1–4 |
+| **Audit Date** | 2026-06-14 |
+| **Baseline** | TypeScript typecheck: 0 errors \| Production build: PASS \| npm audit: 0 vulnerabilities |
 
+---
 
+## Executive Summary
+
+This report presents findings of a comprehensive critical code review and audit across 8 domains: Architecture, TypeScript Strictness, Design System Fidelity, Component Quality, Security, Performance, Accessibility, and Technical Debt. The codebase is in solid shape after four remediation phases. No critical issues were found. 
+
+However, 16 findings ranging from High to Low severity were identified, with the most significant being the pervasive use of inline styles instead of Tailwind CSS utility classes (108 occurrences across 25 files).
+
+### Findings Summary by Severity
+
+| Severity | Count | Description |
+| :--- | :---: | :--- |
+| **CRITICAL** | 0 | — |
+| **HIGH** | 1 | Pervasive inline styles instead of Tailwind CSS utilities — 108 instances across 25 active files |
+| **MODERATE** | 8 | Accessibility gaps including mobile menu focus trap and "View Work" link not wired to routing, ContactSection re-render issue, raw img tag instead of Next.js Image, static components as Client Components, rate limiter edge cases, dead analytics schema, AccessibilityProvider redundancy, missing UI states |
+| **LOW** | 7 | Non-grid spacing values, unnecessary "use client" on not-found.tsx, hash routing URL vs state mismatch, Terminal key={index}, rate-limiter setInterval never cleared, console.log placeholders, minor typing gaps |
+
+---
+
+## Domain 1: Architecture & Pattern Integrity
+*8 checks*
+
+| ID | Status | Finding |
+| :---: | :---: | :--- |
+| 1.1 | PASS | PortfolioApp orchestrator with ErrorBoundary + Suspense per section |
+| 1.2 | PASS | useRouteHash VALID_SECTIONS matches section IDs |
+| 1.3 | LOW | getHashFromWindow() only called on mount; hashchange listener validates state but URL can show invalid hash |
+| 1.4 | PASS | page.tsx correctly uses "use client" + ssr: false |
+| 1.5 | PASS | layout.tsx Server Component with ThemeScript, metadata, fonts |
+| 1.6 | PASS | error.tsx and not-found.tsx implemented correctly |
+| 1.7 | PASS | PortfolioApp.tsx correctly in src/app/ |
+| 1.8 | LOW | not-found.tsx has "use client" but uses no hooks or browser APIs — should be Server Component |
+
+---
+
+## Domain 2: TypeScript Strictness & Type Safety
+*7 checks*
+
+| ID | Status | Finding |
+| :---: | :---: | :--- |
+| 2.1 | PASS | typecheck zero errors |
+| 2.2 | PASS | No "any" types |
+| 2.3 | PASS | Array index accesses use `?.` or `??` |
+| 2.4 | PASS | Project type consolidated |
+| 2.5 | PASS | FallbackProps.error typed as unknown |
+| 2.6 | LOW | Several callbacks rely on implicit inference (ContactSection handleChange, Terminal executeCommand) |
+| 2.7 | PASS | No `@ts-ignore` or `@ts-expect-error` |
+
+---
+
+## Domain 3: Design System Fidelity
+*9 checks*
+
+| ID | Status | Finding |
+| :---: | :---: | :--- |
+| 3.1 | PASS | All `var()` references resolve to `@theme` tokens |
+| 3.2 | PASS | No border-radius violations |
+| 3.3 | PASS | Typography hierarchy correct |
+| 3.4 | LOW | Non-grid spacing: Navigation dot `gap="8px"`, Terminal input `gap="8px"` instead of `var(--spacing-quarter)` |
+| 3.5 | PASS | Day/Night theme all colors have both variants |
+| 3.6 | PASS | FOUC prevention |
+| 3.7 | PASS | `data-theme` targets html consistently |
+| 3.8 | PASS | No forbidden fonts |
+| 3.9 | PASS | Scrollbar border-radius: 0 |
+
+---
+
+## Domain 4: Component Quality & React Best Practices
+*9 checks*
+
+| ID | Status | Finding |
+| :---: | :---: | :--- |
+| 4.1 | MODERATE | BlogSection has only "Coming Soon" with no loading/error state; Terminal has no empty state after "clear"; Footer wrapped in Suspense only |
+| 4.2 | MODERATE | AccessibilityProvider provides context but no component consumes `useAccessibility()`. Three components use standalone `useReducedMotion()` hook directly |
+| 4.3 | LOW | rate-limit.ts has `setInterval` never cleared |
+| 4.4 | LOW | Terminal.tsx uses `key={index}` for output lines |
+| 4.5 | MODERATE | ContactSection handleChange depends on "errors" in dependency array causing re-renders |
+| 4.6 | PASS | `useReducedMotion` respected in all animation components |
+| 4.7 | PASS | Components use `--color-` prefix convention |
+| 4.8 | PASS | ARIA attributes on interactive widgets |
+| 4.9 | HIGH | 108 inline `style={{}}` occurrences across 25 active files vs only 7 className uses. Tailwind CSS v4 is a dependency but almost entirely bypassed. |
+
+---
+
+## Domain 5: Security & API Hardening
+*8 checks*
+
+| ID | Status | Finding |
+| :---: | :---: | :--- |
+| 5.1 | PASS | Contact API input validation |
+| 5.2 | MODERATE | Rate limiter cleanup threshold hardcoded to 60s; algorithm is token bucket not sliding window; `getClientIp` falls back to "127.0.0.1" sharing bucket |
+| 5.3 | PASS | No hardcoded credentials |
+| 5.4 | PASS | CORS configuration appropriate |
+| 5.5 | PASS | `dangerouslySetInnerHTML` uses are safe (JSON-LD + ThemeScript) |
+| 5.6 | PASS | Environment variable handling |
+| 5.7 | PASS | Database queries parameterized |
+| 5.8 | PASS | Error responses don't leak internals |
+
+---
+
+## Domain 6: Performance & Bundle Analysis
+*8 checks*
+
+| ID | Status | Finding |
+| :---: | :---: | :--- |
+| 6.1 | PASS | Build succeeds |
+| 6.2 | PASS | Dynamic imports for heavy components |
+| 6.3 | MODERATE | ProjectCard uses raw `<img>` tag instead of Next.js Image component |
+| 6.4 | PASS | Font loading strategy |
+| 6.5 | MODERATE | BlogSection and Footer are Client Components unnecessarily |
+| 6.6 | PASS | No redundant CSS |
+| 6.7 | LOW | HeroKinetic uses JS-driven animation where CSS `@keyframes` would suffice |
+| 6.8 | PASS | Error boundary wrapping is correct |
+
+---
+
+## Domain 7: Accessibility — WCAG AAA Target
+*8 checks*
+
+| ID | Status | Finding |
+| :---: | :---: | :--- |
+| 7.1 | PASS | Semantic HTML heading hierarchy |
+| 7.2 | PASS | Color contrast ratios in both themes |
+| 7.3 | MODERATE | "View Work" link bypasses hash routing system; Navigation doesn't highlight "Projects" as active |
+| 7.4 | PASS | `prefers-reduced-motion` respected |
+| 7.5 | PASS | ARIA attributes on custom widgets |
+| 7.6 | PASS | Focus management on hash route changes |
+| 7.7 | MODERATE | Mobile menu uses `role="dialog"` + `aria-modal="true"` but does not trap focus |
+| 7.8 | PASS | Form accessibility |
+
+---
+
+## Domain 8: Technical Debt & Dead Code Audit
+*9 checks*
+
+| ID | Status | Finding |
+| :---: | :---: | :--- |
+| 8.1 | MODERATE | 15 archived components, 5 archived lib files, 2 archived hooks with unresolved CSS variables |
+| 8.2 | LOW | 3 `console.log`/`error`/`warn` instances |
+| 8.3 | LOW | 1 TODO in contact route |
+| 8.4 | PASS | No unused imports |
+| 8.5 | PASS | No hardcoded credentials |
+| 8.6 | MODERATE | Analytics table schema exists but nothing writes to it |
+| 8.7 | LOW | Missing portrait assets referenced by archived data.ts |
+| 8.8 | PASS | npm audit: 0 vulnerabilities |
+| 8.9 | MODERATE | AccessibilityProvider vs `useReducedMotion` redundancy (same as 4.2) |
+
+---
+
+## Consolidated Remediation Plan
+*Prioritized by impact and effort*
+
+| Priority | ID | Title | Effort | Impact |
+| :---: | :---: | :--- | :---: | :---: |
+| **P1** | 4.9 | Migrate inline styles to Tailwind CSS utilities | Large | High |
+| **P2** | 7.3 | Wire "View Work" link to hash router | Small | High |
+| **P3** | 7.7 | Add focus trap to mobile menu dialog | Small | High |
+| **P4** | 4.5 | Fix ContactSection re-render issue | Small | Medium |
+| **P5** | 6.3 | Replace raw img with Next.js Image | Small | Medium |
+| **P6** | 5.2 | Fix rate limiter edge cases | Small | Medium |
+| **P7** | 4.2/8.9 | Consolidate AccessibilityProvider + `useReducedMotion` | Medium | Medium |
+| **P8** | 8.6 | Remove or implement analytics schema | Small | Low |
+| **P9** | 6.5 | Convert static Client Components to Server Components | Small | Low |
+| **P10** | 4.1 | Add missing UI states | Small | Low |
+| **P11** | 1.3 | Sync URL hash on invalid navigation | Small | Low |
+| **P12** | 1.8 | Remove "use client" from not-found.tsx | Trivial | Low |
+| **P13** | 3.4 | Replace hardcoded 8px with grid variables | Trivial | Low |
+
+---
+
+## Key Recommendations with Code Examples
+
+### Rec 4.9: Migrate Inline Styles to Tailwind (Phased)
+**Phase 1:** Define Tailwind theme extensions. The `@theme` block already defines CSS custom properties. Tailwind v4 maps `@theme` vars to utility classes automatically.  
+**Phase 2:** Create reusable component classes in `globals.css` using `@apply`:
+
+```css
+@layer components {
+  .brutal-card {
+    @apply border-2 border-border bg-surface shadow-brutal-sm p-grid;
+  }
+  .brutal-btn {
+    @apply font-mono text-xs uppercase tracking-wider
+           px-half py-quarter border-2 border-border
+           rounded-none cursor-pointer transition-fast;
+  }
+}
+```
+**Phase 3:** Migrate components incrementally from simple (Footer, BlogSection) to complex (ContactSection, Navigation).  
+**Phase 4:** Remove inline style objects from data objects.
+
+### Rec 7.3: Wire "View Work" Link
+Pass `onNavigate` prop to `HeroKinetic`:
+
+```typescript
+interface HeroKineticProps {
+  readonly onNavigate: (section: string) => void;
+}
+
+// In the link:
+onClick={(e) => { e.preventDefault(); onNavigate("#projects"); }}
+```
+
+### Rec 7.7: Focus Trap for Mobile Menu
+Add keydown handler in Navigation `useEffect`:
+
+```typescript
+const handleTabTrap = (e: KeyboardEvent) => {
+  if (e.key !== "Tab") return;
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault(); last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault(); first.focus();
+  }
+};
+```
+
+### Rec 4.5: Fix ContactSection Re-render
+Use functional update to remove "errors" dependency:
+
+```typescript
+const handleChange = useCallback(
+  (field) => (e) => {
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+    setErrors((prev) => prev[field]
+      ? { ...prev, [field]: undefined }
+      : prev);
+  },
+  [],  // No more "errors" dependency
+);
+```
+
+### Rec 5.2: Fix Rate Limiter
+* Use dynamic `maxWindowMs` for cleanup threshold.
+* Rename from "sliding window" to "token bucket".
+* Log warning when no client IP detected instead of falling back to shared bucket.
+
+### Rec 8.6: Analytics Schema
+* **Option A:** Remove dead schema.
+* **Option B:** Implement middleware page view tracking.
+
+---
+
+## Appendix A: Inline Style Census
+*Top files by inline style count*
+
+| File | Inline Style Count |
+| :--- | :---: |
+| `ProjectCard.tsx` | 11 |
+| `ContactSection.tsx` | 8 |
+| `Navigation.tsx` | 8 |
+| `Timeline.tsx` | 8 |
+| `HeroKinetic.tsx` | 6 |
+| `Terminal.tsx` | 6 |
+| `SkillsSection.tsx` | 6 |
+| `BentoGrid.tsx` | 5 |
+| `not-found.tsx` | 5 |
+| `page.tsx` | 5 |
+| `ProjectsSection.tsx` | 4 |
+| `ErrorBoundary.tsx` | 4 |
+| `Footer.tsx` | 4 |
+| `error.tsx` | 4 |
+| `BlogSection.tsx` | 3 |
+| `PortfolioApp.tsx` | 3 |
+| `SectionBlock.tsx` | 2 |
+| Others | 1 each |
+| **Total: 108 inline style instances across 25 active files** | |
 
 ### Audit Summary
 
