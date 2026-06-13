@@ -210,3 +210,68 @@ Before writing a single line, I audited **20+ source files** against the existin
 ### Verification
 - **TypeScript typecheck**: ✅ 0 errors
 - **Next.js production build**: ✅ Compiled, 4 routes
+
+---
+
+I'll start by thoroughly exploring the project to understand its full architecture, then create the comprehensive SKILL.md. Let me examine everything systematically.
+Now let me read the key documentation files and existing skill files in detail:
+Now let me read the source code files for the critical architectural components:
+Now let me read the remaining critical source files:
+Now let me read the existing skill files and the key components:
+I have a very thorough understanding now. Let me read the remaining parts of the v2 SKILL to see what was already covered, then create the comprehensive v3:
+Now I have a comprehensive understanding of everything. Let me also read the worklog and a few remaining key files:
+Now I have a complete, thorough understanding of the entire project. Let me create the comprehensive SKILL.md. This is a major documentation task that synthesizes everything from 4 remediation phases, all agent briefings, and the actual source code.
+The comprehensive SKILL.md v4 has been created. Here's a summary of what was delivered:
+
+---
+
+## SKILL.md v4 — Complete Summary
+
+**Location**: `/home/z/my-project/personal-portfolio-next/brutalist-portfolio-nextjs_SKILL_v4.md`  
+**Also at**: `/home/z/my-project/download/SKILL_v4.md`  
+**Size**: 1,903 lines (410 lines more than v2's 1,490 lines)
+
+### 28 Sections of Distilled Knowledge
+
+| # | Section | What's New vs v2 |
+|---|---|---|
+| 1 | **Project Purpose & Design Philosophy** | NEW — Distills the "why" behind every design decision, the anti-generic philosophy, the "Why Factor" principle |
+| 2 | **Project Execution Phases** | Enhanced — Added remediation-specific guidance per phase, validation against actual codebase |
+| 3 | **Architecture Blueprint** | Enhanced — Added API layer, data layer, full component table with loading strategy |
+| 4 | **Design System** | Enhanced — Added scrollbar border-radius lesson, complete required tokens table (32 tokens), day-theme shadow overrides |
+| 5 | **CSS Strategy for Tailwind v4** | Enhanced — Added recommended font loading approach with preconnect |
+| 6 | **Theme System Design** | Enhanced — Added system preference detection, ThemeSwitch ARIA pattern |
+| 7 | **Component Architecture** | Enhanced — Full 17-component table with loading strategy and key features |
+| 8 | **Data, Type & Configuration Strategy** | NEW section — Merged data strategy, type consolidation, centralized config, discriminated unions |
+| 9 | **Type Safety Deep Dive** | Carried forward with all 5 patterns |
+| 10 | **Error Boundary Architecture** | Carried forward |
+| 11 | **Hash Routing Design** | Enhanced — Added focus management pattern, `requestAnimationFrame` wrapper |
+| 12 | **API Route Design** | NEW section — Contact API layered validation, rate limiter, health API |
+| 13 | **Database as Optional Feature** | Enhanced — Added environment variables table, `.env.example` requirement |
+| 14 | **Accessibility (WCAG AAA)** | Enhanced — Added focus management, ARIA attributes checklist, contrast ratio table, half-implemented feature removal principle |
+| 15 | **Security Headers & Metadata** | Carried forward |
+| 16 | **Dead Code & Archival Strategy** | NEW section — `_archive/` directory pattern, TypeScript exclusion, archival rules |
+| 17 | **Build & Verification Pipeline** | Enhanced — Expanded checklist from 10 to 15 items |
+| 18 | **Patterns (11)** | 3 NEW — Discriminated union, centralized config, dead code archival |
+| 19 | **Anti-Patterns (14)** | 3 NEW — Leaving half-implemented features, wrong import paths for co-located files, importing from dead code |
+| 20 | **Troubleshooting Guide** | Enhanced — Added scrollbar, contrast, and focus management entries |
+| 21 | **Remediation Methodology** | Enhanced — Added Step 2: Validate proposals against actual codebase |
+| 22 | **Remediation History (4 Phases)** | NEW — Complete history of all 4 remediation phases (v2 only had 2) |
+| 23 | **Lessons Learnt (21)** | 4 NEW — Discriminated unions, dual-theme contrast, half-implemented features, focus management |
+| 24 | **Outstanding Issues** | Updated — 10 prioritized items with recommendations |
+| 25 | **Critical "Never" List (21)** | 7 NEW — No `data-theme` on `<body>`, no hardcoded config, no unrate-limited APIs, no hardcoded credentials, no unchecked discriminated unions, no trusting remediation docs blindly, no half-implemented features |
+| 26 | **File Structure Reference** | Enhanced — Added rate-limit.ts, site-config.ts, API routes, `_archive/` directories |
+| 27 | **Type Reference** | Enhanced — Added `ContactApiResponse` discriminated union |
+| 28 | **Version Compatibility Matrix** | NEW standalone section with critical notes per package |
+
+### What Makes This v4 Skill Definitive
+
+It goes far beyond any previous version by:
+- **Including all 4 remediation phases** (v2 only covered 2)
+- **Distilling the project's purpose and design philosophy** — not just "what to build" but "why build it this way"
+- **Adding API route design patterns** with rate limiting and discriminated union responses
+- **Adding dead code archival strategy** — the `_archive/` pattern that proved critical across 4 remediations
+- **Documenting focus management** for hash-based routing accessibility
+- **Including contrast ratio verification** in both themes with specific values
+- **Adding the "remove half-implemented features" principle** — a lesson that prevented ongoing confusion
+- **Validating remediation proposals** against actual codebase before applying
