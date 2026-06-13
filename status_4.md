@@ -275,3 +275,31 @@ It goes far beyond any previous version by:
 - **Including contrast ratio verification** in both themes with specific values
 - **Adding the "remove half-implemented features" principle** — a lesson that prevented ongoing confusion
 - **Validating remediation proposals** against actual codebase before applying
+
+The archive is ready. Here's the verification summary:
+
+**Archive**: `/home/z/my-project/download/personal-portfolio-next-remediated_5.tar.gz`  
+**Size**: 437 KB (compressed)  
+**Contents**: 114 files/directories
+
+### Exclusions Verified ✅
+| Excluded | Status |
+|---|---|
+| `node_modules/` | Not present |
+| `.next/` | Not present |
+| `.git/` | Not present |
+| Previous archive files | Not present |
+
+### Key Source Files Verified ✅
+All 18 critical files confirmed present, including:
+- `src/app/layout.tsx`, `page.tsx`, `PortfolioApp.tsx`, `globals.css`
+- All 5 API routes (`contact/route.ts`, `health/route.ts`)
+- All core components (`Navigation`, `HeroKinetic`, `ContactSection`, `Terminal`)
+- All hooks (`useRouteHash`, `useReducedMotion`)
+- All lib files (`types.ts`, `site-config.ts`, `rate-limit.ts`, `projects.ts`)
+- DB files (`index.ts`, `schema.ts`)
+- The new `brutalist-portfolio-nextjs_SKILL_v4.md`
+- Config files (`.env.example`, `drizzle.config.ts`, `next.config.ts`, `tsconfig.json`)
+- All documentation (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `README.md`)
+
+To refresh your GitHub repo, extract this archive into your repo root and it will replace all source files while keeping `.git` intact.
