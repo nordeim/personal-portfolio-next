@@ -112,3 +112,59 @@ git push origin main
 ```
 
 The archive contains all 40 remediated files plus the 5 fixes I applied (dependency version corrections, removed `optimizeFonts`, unused import cleanup, null guard on `db`, `"use client"` directive, CSS import order). TypeScript and production build both pass clean.
+
+---
+
+I'll do a thorough audit of the current codebase state before updating the three documentation files. Let me start by reviewing the current files and the full project state.
+Now let me do a deep audit of the current codebase to identify all issues, gotchas, and patterns:
+Excellent — that audit is thorough. I now have a complete picture. Let me update all three files with precision.
+Now let me write the updated README.md:
+Now let me write the updated CLAUDE.md:
+Now the final file — AGENTS.md:
+Now let me verify typecheck still passes after the doc updates:
+All three documentation files have been meticulously updated. Here's a summary of what changed in each:
+
+---
+
+## README.md — Changes
+
+| Area | Before | After |
+|---|---|---|
+| **Tech Stack versions** | Next.js 16.2.6, React 19.2.6 | Next.js 16.2.9, React 19.2.7 |
+| **Body font** | Inter | DM Sans (anti-generic identity) |
+| **Theme mechanism** | Vague "Night/Day modes" | Specific: `data-theme` attribute on `<body>` |
+| **Project Status** | Orchestration & Entry Point "In Progress" | All 6 phases "Complete" + Remediation phase added |
+| **Troubleshooting** | None | 5 build-error symptoms with causes/fixes + CSS variable resolution guide |
+| **Known Issues** | None | 8 documented issues (duplicate types, missing assets, simulated form, etc.) |
+| **Lessons Learnt** | None | 6 lessons from the remediation pass |
+| **Recommendations** | None | 10 prioritized recommendations for next steps |
+| **License** | Proprietary | Proprietary (unchanged) |
+
+## CLAUDE.md — Changes
+
+| Area | Before | After |
+|---|---|---|
+| **Font loading** | `next/font` | `@import url()` in CSS (must precede Tailwind) |
+| **Body font** | Inter | DM Sans |
+| **Theme system** | `theme-night`/`theme-day` classes | `data-theme="night"`/`data-theme="day"` on `<body>` |
+| **CSS variables** | Not mentioned | Documented two naming conventions + warning about dormant components |
+| **Component classification** | Not documented | Active (15) vs Dormant (10+) explicitly listed |
+| **Gotchas** | Minimal | 7 critical gotchas with code examples |
+| **Database** | Listed as required | Marked optional with null-safety warning |
+| **Visual Fidelity Checklist** | All unchecked | WCAG/skip-link/error-boundaries checked off; remaining items still unchecked |
+| **Remediation History** | None | 8 resolved issues documented |
+
+## AGENTS.md — Changes
+
+| Area | Before | After |
+|---|---|---|
+| **State discrepancy** | Flagged `page.tsx` as starter template, `PortfolioApp.tsx` as missing | Updated: both now implemented, orchestrator is live |
+| **Theme classes** | `theme-night`/`theme-day` on `<html>` | `data-theme` attribute on `<body>` (correct) |
+| **LayoutShell** | "Wrap entire app in LayoutShell" | "LayoutShell is dormant — do NOT wrap unless integrating" |
+| **Body font** | Not mentioned | DM Sans, NOT Inter |
+| **Gotchas** | 3 items | 10 detailed items with code examples |
+| **"Never" List** | 4 items | 8 items (added `optimizeFonts`, CSS import order, class-based themes, null-safe DB) |
+| **Outstanding Issues** | None | 10 prioritized issues |
+| **Lessons Learnt** | None | 6 lessons from remediation |
+| **Component state** | Not documented | Active vs Dormant classification |
+
