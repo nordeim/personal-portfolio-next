@@ -79,3 +79,36 @@ All 40 updated files from `Remediation.md` were extracted and written to their c
 
 - **TypeScript typecheck**: ✅ PASS (0 errors)
 - **Next.js production build**: ✅ PASS (compiled successfully in 2.4s, 3 routes generated)
+
+---
+
+The `.git` directory is included, which would conflict when refreshing your repo. Let me recreate the archive excluding `.git` as well — you'll want a clean extract to push to your existing GitHub repo:
+Archive is clean and ready. Here's the summary:
+
+---
+
+**Archive created:** `/home/z/my-project/download/personal-portfolio-next-remediated.tar.gz`
+
+| Detail | Value |
+|---|---|
+| **Size** | 255 KB |
+| **Total entries** | 93 files/directories |
+| **Excluded** | `node_modules/`, `.next/`, `.git/` |
+
+**To refresh your GitHub repo:**
+
+```bash
+# 1. Extract the archive into your repo root
+cd your-repo-directory
+tar xzf personal-portfolio-next-remediated.tar.gz
+
+# 2. Review changes
+git diff --stat
+
+# 3. Stage, commit, and push
+git add -A
+git commit -m "chore: apply remediation — 40 files updated, build errors resolved"
+git push origin main
+```
+
+The archive contains all 40 remediated files plus the 5 fixes I applied (dependency version corrections, removed `optimizeFonts`, unused import cleanup, null guard on `db`, `"use client"` directive, CSS import order). TypeScript and production build both pass clean.
