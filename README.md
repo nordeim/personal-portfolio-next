@@ -189,4 +189,3 @@ The `drizzle.config.ts` file throws an error if `DATABASE_URL` is not set. This 
 ## License
 
 Proprietary — All rights reserved.
-

@@ -151,4 +151,3 @@ The Night theme needs a lighter muted text (`#918983`) while the Day theme needs
 19. **Remove unused features rather than leaving them half-implemented** — `prefersHighContrast` was defined in `AccessibilityProvider` but never consumed, and no high-contrast color palette existed. Removing it entirely was cleaner than leaving a dead toggle implying non-existent functionality.
 20. **Focus management is essential for keyboard navigation** — Hash-based routing that scrolls without moving focus creates a trap for keyboard users. Adding `tabindex="-1"` + `focus()` on the target heading after navigation brings keyboard users directly to the new section.
 21. **Never hardcode credentials in config files** — `drizzle.config.json` had `postgres:postgres` in plaintext. Converting to `drizzle.config.ts` with `process.env.DATABASE_URL` eliminated the security risk. The config now throws a clear error message if the variable is missing.
-

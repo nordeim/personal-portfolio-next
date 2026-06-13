@@ -281,4 +281,3 @@ API responses from `/api/contact` use `ContactApiResponse = ContactApiSuccess | 
 | Text-muted contrast ratios failed WCAG AA | Night: `#6b6560` → `#918983` (3.45:1 → 5.76:1); Day: `#8a8478` → `#6b6560` (3.28:1 → 5.06:1) |
 | No focus management after hash navigation | Added `requestAnimationFrame` + `tabindex="-1"` + `focus()` in `useRouteHash.setActiveSection` to move keyboard focus to section headings |
 | ARIA attributes on interactive widgets | Verified already present — `ThemeSwitch` has `role="switch"` + `aria-checked`, `Navigation` has `aria-current`, `Terminal` has `role="log"` + `aria-live="polite"` |
-
