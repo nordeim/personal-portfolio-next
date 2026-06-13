@@ -22,6 +22,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  allowedDevOrigins: ["personal-portfolio-next.jesspete.shop"],
   images: {
     formats: ["image/avif", "image/webp"],
   },
