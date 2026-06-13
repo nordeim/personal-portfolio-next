@@ -125,3 +125,68 @@ git push origin main
 ```
 
 The archive contains the full remediated codebase with all 14 files from `Remediation_2.md` plus the 11 additional fixes I applied to resolve type errors. TypeScript typecheck and Next.js production build both pass clean.
+
+---
+
+I'll do a thorough audit of the current codebase state first, then meticulously update all three documentation files to reflect reality. Let me start with a comprehensive recon pass.
+Excellent — that's an incredibly thorough audit. Now let me read the current state of all three documentation files and update them with precision.
+Now I have the complete audit data and the current doc contents. Let me update all three files with surgical precision based on the audit findings.
+Now let me verify typecheck + build still pass:
+Build passes clean. Let me update the worklog and finalize:
+All three documentation files have been meticulously updated. Here's the comprehensive summary:
+
+---
+
+## Documentation Update Summary
+
+### Audit Discovery → Documentation
+
+Before writing a single line, I ran a **97-file comprehensive audit** that uncovered critical issues the previous docs missed entirely:
+
+| Discovery | Severity | Documented In |
+|-----------|----------|---------------|
+| **14 undefined CSS variables in ACTIVE components** | 🔴 Critical | All 3 files — detailed table with usage per component and expected values |
+| **Hash routing mismatch** (`VALID_SECTIONS` ≠ actual section IDs) | 🔴 Critical | All 3 files |
+| **Theme target inconsistency** (`<html>` vs `<body>`) | 🟡 Moderate | All 3 files |
+| **~40% of codebase is dead/dormant code** | 🟢 Low | All 3 files — explicit file listing |
+| **`useAccessibility()` never consumed** | 🟢 Low | All 3 files |
+| **`NEXT_PUBLIC_SITE_URL` unused** | 🟢 Low | All 3 files |
+
+---
+
+### README.md — Changes
+
+| Area | Before | After |
+|------|--------|-------|
+| **Component counts** | "28 components (18 active, 10 dormant)" | 32 components (18 active, 14 dormant) |
+| **Project phases** | 6 phases | 8 phases (added Remediation 1 + Remediation 2) |
+| **Troubleshooting** | 5 entries | 8 entries (added `noUncheckedIndexedAccess`, `react-error-boundary` v4, module not found, wrong import path) |
+| **Known Issues** | 8 flat items | 15 items in 3 tiers: Critical (2), Moderate (7), Low (6) |
+| **Lessons Learnt** | 6 | 10 (added `noUncheckedIndexedAccess` catches real bugs, `react-error-boundary` v4 type change, `PortfolioApp` location, undefined CSS vars fail silently) |
+| **Recommendations** | 10 | 12 (prioritized: missing CSS vars first, then hash routing, then theme target, then dead code cleanup) |
+
+### CLAUDE.md — Changes
+
+| Area | Before | After |
+|------|--------|-------|
+| **Font loading** | `@import url()` in CSS only | Documented both approaches (CSS + `<link>` in layout.tsx) |
+| **Typography** | `var(--font-display)` listed without caveat | Noted `--font-display` is NOT defined in `@theme` yet |
+| **Architecture** | "Static content in `data.ts` and `content.ts`" | Marked `data.ts` as dead code; documented active data sources |
+| **Gotchas** | 7 items | 11 items (added 14 undefined CSS vars table, hash routing mismatch, theme target inconsistency, `PortfolioApp` location, `react-error-boundary` v4, dead code listing) |
+| **Remediation History** | 8 entries (Remediation 1 only) | 21 entries (8 from Remediation 1 + 13 from Remediation 2) |
+| **Visual Fidelity Checklist** | 3 checked, 6 unchecked | 6 checked, 8 unchecked (added security headers, OG metadata, consolidated types, missing CSS vars, hash routing) |
+
+### AGENTS.md — Changes
+
+| Area | Before | After |
+|------|--------|-------|
+| **"Never" List** | 8 items | 12 items (added noUncheckedIndexedAccess, PortfolioApp location, `react-error-boundary` type, dead data.ts import) |
+| **Outstanding Issues** | 10 items | 12 items (reordered: missing CSS vars first, then hash routing, then theme target, dead code cleanup, centralized contact info, consume `useAccessibility()`) |
+| **Lessons Learnt** | 6 | 10 (added silent CSS var failure, `noUncheckedIndexedAccess`, `react-error-boundary` v4, file location) |
+| **Operational Gotchas** | 10 items | 14 items (added 14 undefined CSS vars table, hash routing mismatch, theme target inconsistency, `PortfolioApp` location, `noUncheckedIndexedAccess`, `react-error-boundary` v4) |
+| **Current State** | Brief | Expanded with dead code inventory and critical CSS variable issue |
+
+### Verification
+- **TypeScript typecheck**: ✅ PASS — 0 errors
+- **Next.js production build**: ✅ PASS — compiled in 2.1s, 3 routes
+- 
