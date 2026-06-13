@@ -1,38 +1,63 @@
-export interface Project {
-  readonly id: string;
-  readonly title: string;
-  readonly description: string;
-  readonly tags: readonly string[];
-  readonly image?: string;
-  readonly github?: string;
-  readonly live?: string;
-  readonly featured?: boolean;
-}
+import type { Project } from "./types";
 
-export const projects: Project[] = [
+export type { Project, ProjectCategory, ProjectLink } from "./types";
+
+export const projects: readonly Project[] = [
   {
-    id: "the-engineered-soul",
-    title: "The Engineered Soul",
+    id: "civitas",
+    title: "Civitas",
     description:
-      "A brutally honest personal portfolio built with Next.js 16, React 19, and Tailwind CSS v4. Tactile Brutalism design system with zero border-radius and a 28px mathematical grid.",
-    tags: ["Next.js", "React", "TypeScript", "Tailwind CSS"],
-    github: "https://github.com/nordeim/personal-portfolio-next",
+      "A community platform designed to foster meaningful connections and civic engagement. Built with performance and accessibility at its core.",
+    role: "Lead Developer",
+    period: "2024",
+    category: "full-stack",
+    tech: ["Next.js", "TypeScript", "PostgreSQL"],
+    links: { live: "#", repo: "#" },
     featured: true,
   },
   {
-    id: "project-2",
-    title: "Project Placeholder",
+    id: "lattice",
+    title: "Lattice",
     description:
-      "A demonstration project showcasing full-stack capabilities with modern tooling and clean architecture.",
-    tags: ["React", "Node.js", "PostgreSQL"],
-    featured: false,
+      "A generative design system that explores the intersection of mathematics and visual aesthetics through interactive visualizations.",
+    role: "Creative Technologist",
+    period: "2023",
+    category: "frontend",
+    tech: ["Three.js", "GLSL", "TypeScript"],
+    links: { live: "#", repo: "#" },
+    featured: true,
   },
   {
-    id: "project-3",
-    title: "Design System",
+    id: "thesis",
+    title: "Thesis",
     description:
-      "A comprehensive design system with tokens, components, and documentation. Built for consistency and scalability.",
-    tags: ["TypeScript", "Design Systems", "Tailwind CSS"],
-    featured: false,
+      "My academic research project exploring algorithmic approaches to sustainable urban planning and resource allocation.",
+    role: "Researcher",
+    period: "2023",
+    category: "research",
+    tech: ["Python", "TensorFlow", "GIS"],
+    links: {},
   },
-];
+  {
+    id: "forge",
+    title: "Forge",
+    description:
+      "A lightweight development toolkit that streamlines the creation of accessible, performant web applications with built-in design system tooling.",
+    role: "Creator",
+    period: "2024",
+    category: "tool",
+    tech: ["Node.js", "TypeScript", "CLI"],
+    links: { repo: "#" },
+  },
+  {
+    id: "pulse",
+    title: "Pulse",
+    description:
+      "A real-time data visualization dashboard that transforms complex datasets into intuitive, interactive narratives for decision-makers.",
+    role: "Frontend Lead",
+    period: "2023",
+    category: "frontend",
+    tech: ["React", "D3.js", "WebSocket"],
+    links: { live: "#" },
+  },
+] as const;

@@ -1,29 +1,19 @@
-'use client';
+import { useState, useEffect } from "react";
 
-import { useEffect, useState } from 'react';
-
-/**
- * Detects the user's `prefers-reduced-motion` setting.
- * Returns `true` when the user has requested reduced motion.
- *
- * SSR guard: returns `false` on the server.
- * Cleanup: removes the `change` listener on unmount.
- */
 export function useReducedMotion(): boolean {
-  const [prefersReduced, setPrefersReduced] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(true); // SSR-safe default
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReduced(mql.matches);
+    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mql.matches);
 
-    const handler = (event: MediaQueryListEvent): void => {
-      setPrefersReduced(event.matches);
-    };
+    function handleChange(e: MediaQueryListEvent) {
+      setPrefersReducedMotion(e.matches);
+    }
 
-    mql.addEventListener('change', handler);
-    return () => mql.removeEventListener('change', handler);
+    mql.addEventListener("change", handleChange);
+    return () => mql.removeEventListener("change", handleChange);
   }, []);
 
-  return prefersReduced;
+  return prefersReducedMotion;
 }

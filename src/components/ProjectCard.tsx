@@ -8,7 +8,7 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({ project }: ProjectCardProps) {
-  const tags = useMemo(() => project.tags, [project.tags]);
+  const techTags = useMemo(() => [...project.tech], [project.tech]);
 
   return (
     <article
@@ -82,7 +82,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           {project.description}
         </p>
 
-        {/* Tags */}
+        {/* Tech tags */}
         <div
           style={{
             display: "flex",
@@ -91,7 +91,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             marginTop: "var(--spacing-half)",
           }}
         >
-          {tags.map((tag) => (
+          {techTags.map((tag) => (
             <span
               key={tag}
               style={{
@@ -119,9 +119,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             borderTop: "1px solid var(--color-border-subtle)",
           }}
         >
-          {project.github && (
+          {project.links.repo && (
             <a
-              href={project.github}
+              href={project.links.repo}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`View ${project.title} source code on GitHub (opens in new tab)`}
@@ -137,9 +137,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               Source →
             </a>
           )}
-          {project.live && (
+          {project.links.live && (
             <a
-              href={project.live}
+              href={project.links.live}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`View ${project.title} live demo (opens in new tab)`}

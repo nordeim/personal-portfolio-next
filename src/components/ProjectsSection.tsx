@@ -7,7 +7,7 @@ import { projects } from "@/lib/projects";
 
 const ALL_TAGS = [
   "All",
-  ...Array.from(new Set(projects.flatMap((p) => p.tags))),
+  ...Array.from(new Set(projects.flatMap((p) => [...p.tech]))),
 ] as const;
 
 export default function ProjectsSection() {
@@ -15,7 +15,7 @@ export default function ProjectsSection() {
 
   const filteredProjects = useMemo(() => {
     if (activeTag === "All") return projects;
-    return projects.filter((p) => p.tags.includes(activeTag));
+    return projects.filter((p) => [...p.tech].includes(activeTag));
   }, [activeTag]);
 
   const handleTagClick = useCallback((tag: string) => {

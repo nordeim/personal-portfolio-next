@@ -79,7 +79,7 @@ export default function Navigation({
     );
 
     if (focusable.length > 0) {
-      focusable[0].focus();
+      focusable[0]?.focus();
     }
   }, [isMobileMenuOpen]);
 

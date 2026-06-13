@@ -1,66 +1,91 @@
-/* ============================================================
-   The Engineered Soul — Shared TypeScript Interfaces
-   No `enum`, no `namespace` (strict TypeScript).
-   ============================================================ */
-
-export interface HeroSlide {
+export interface NavLink {
   label: string;
-  portraitKey: string;
-  headline: string;
-  subtitle: string;
-  artifactTitle: string;
-  artifactMeta: string;
-  signature: string;
-  accent: string;
-  secondaryAccent: string;
-  tags: string[];
+  href: string;
+}
+
+export interface SocialLink {
+  platform: string;
+  url: string;
+  icon?: string;
+}
+
+export interface SiteConfig {
+  name: string;
+  title: string;
+  email: string;
+  github: string;
+  githubUrl: string;
+  linkedin: string;
+  linkedinUrl: string;
+  location: string;
+}
+
+export interface ProjectLink {
+  live?: string;
+  repo?: string;
+}
+
+export type ProjectCategory =
+  | "full-stack"
+  | "frontend"
+  | "systems"
+  | "research"
+  | "tool"
+  | "design"
+  | "other";
+
+export interface Project {
+  id: string;
+  title: string;
+  description: string;
+  role: string;
+  period: string;
+  category: ProjectCategory;
+  tech: readonly string[];
+  links: ProjectLink;
+  image?: string;
+  featured?: boolean;
 }
 
 export interface AboutPillar {
   title: string;
-  paragraphs: string[];
+  paragraphs: readonly string[];
 }
 
-export interface Project {
-  title: string;
-  category: string;
-  accent: string;
-  medium?: string;
-  status: string;
-  description: string;
-  link?: string;
-  linkLabel: string;
+export interface ParsedCollectionItem {
   slug: string;
+  title: string;
+  description: string;
+  category: string;
+  status: string;
+  medium?: string;
   image?: string;
   body?: string;
-}
-
-export interface CollectionItem extends Project {
-  collectionSlug: string;
   document?: string;
+  link?: string;
+  linkLabel?: string;
+  accent: string;
 }
 
 export interface Collection {
   slug: string;
   title: string;
+  description: string;
+  accent: string;
+}
+
+export interface ParsedPortfolioItem {
+  slug: string;
+  title: string;
+  description: string;
   category: string;
   accent: string;
-  description: string;
   status: string;
-}
-
-export interface ArchiveRoute {
-  collectionSlug: string;
-  itemSlug: string | null;
-}
-
-export type SocialIconVariant = 'mail' | 'linkedin' | 'instagram' | 'github';
-
-export interface SocialLink {
-  label: string;
-  icon: SocialIconVariant;
-  href: string;
-  description: string;
+  image?: string;
+  medium?: string;
+  body?: string;
+  link?: string;
+  linkLabel?: string;
 }
 
 export interface MachineOverlayData {
@@ -70,41 +95,4 @@ export interface MachineOverlayData {
   activeData: unknown;
 }
 
-export interface ParsedCollectionItem {
-  slug: string;
-  collectionSlug: string;
-  title: string;
-  category: string;
-  accent: string;
-  status: string;
-  description: string;
-  link: string | null;
-  linkLabel: string;
-  body: string;
-  image: string | null;
-  document: string | null;
-  medium: string | null;
-}
-
-export interface ParsedPortfolioItem {
-  slug: string;
-  title: string;
-  category: string;
-  accent: string;
-  status: string;
-  description: string;
-  medium: string | null;
-  link: string | null;
-  linkLabel: string;
-  body: string;
-  image: string | null;
-  collectionSlug: string;
-}
-
-export interface ParsedRoute {
-  raw: string;
-  section: string | null;
-  collection: string | null;
-  item: string | null;
-  isArchive: boolean;
-}
+export type SocialIconVariant = "mail" | "linkedin" | "instagram" | "github";

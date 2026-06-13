@@ -69,9 +69,10 @@ export default function CodeRain({ opacity = 0.08 }: CodeRainProps) {
       const columns = columnsRef.current;
 
       for (let i = 0; i < columns.length; i++) {
-        const char = CHARS[Math.floor(Math.random() * CHARS.length)];
+        const char = CHARS[Math.floor(Math.random() * CHARS.length)] ?? "0";
         const x = i * COLUMN_GAP;
-        const y = columns[i] * FONT_SIZE;
+        const colValue = columns[i] ?? 0;
+        const y = colValue * FONT_SIZE;
 
         ctx.fillText(char, x, y);
 
@@ -80,7 +81,7 @@ export default function CodeRain({ opacity = 0.08 }: CodeRainProps) {
           columns[i] = 0;
         }
 
-        columns[i]++;
+        columns[i] = (columns[i] ?? 0) + 1;
       }
 
       animationRef.current = requestAnimationFrame(draw);

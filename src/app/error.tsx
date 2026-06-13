@@ -2,75 +2,69 @@
 
 import { useEffect } from "react";
 
-interface ErrorPageProps {
-  readonly error: Error & { digest?: string };
-  readonly reset: () => void;
-}
-
-export default function Error({ error, reset }: ErrorPageProps) {
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
   useEffect(() => {
-    // Log error to monitoring service in production
-    if (process.env.NODE_ENV === "production") {
-      // Replace with actual error reporting (e.g., Sentry)
-    }
+    // Log to error reporting service when integrated (e.g., Sentry)
+    console.error("Application error:", error);
   }, [error]);
 
   return (
-    <main
-      role="alert"
-      aria-labelledby="error-heading"
+    <div
       style={{
+        minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        minHeight: "100vh",
-        padding: "var(--spacing-grid)",
-        fontFamily: "var(--font-mono)",
-        textAlign: "center" as const,
+        fontFamily: "var(--font-mono, monospace)",
+        color: "var(--color-text-primary, #f0ece4)",
+        gap: "1rem",
+        padding: "2rem",
       }}
+      role="alert"
     >
-      <h1
-        id="error-heading"
-        style={{
-          fontFamily: "var(--font-display)",
-          fontSize: "clamp(2rem, 5vw, 4rem)",
-          fontWeight: 600,
-          marginBottom: "var(--spacing-half)",
-          color: "var(--color-text-primary)",
-        }}
-      >
-        Something Broke
-      </h1>
       <p
         style={{
           fontSize: "0.875rem",
-          color: "var(--color-text-muted)",
-          marginBottom: "var(--spacing-grid)",
-          maxWidth: "500px",
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
         }}
       >
-        {error.message || "An unexpected error occurred."}
+        Something went wrong
+      </p>
+      <p
+        style={{
+          color: "var(--color-text-muted, #6b6560)",
+          fontSize: "0.75rem",
+          maxWidth: "40ch",
+          textAlign: "center",
+        }}
+      >
+        An unexpected error occurred. Please try again.
       </p>
       <button
         onClick={reset}
         style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.8125rem",
-          letterSpacing: "0.05em",
-          textTransform: "uppercase" as const,
-          padding: "var(--spacing-half) var(--spacing-grid)",
-          border: "2px solid var(--color-border)",
-          background: "var(--color-text-primary)",
-          color: "var(--color-text-inverse)",
+          marginTop: "1rem",
+          padding: "0.5rem 1.5rem",
+          background: "var(--color-accent, #e8c547)",
+          color: "var(--color-bg, #0a0a0a)",
+          border: "none",
+          fontFamily: "var(--font-mono, monospace)",
+          fontSize: "0.75rem",
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
           cursor: "pointer",
-          boxShadow: "var(--shadow-brutal)",
-          borderRadius: 0,
-          transition: "transform var(--transition-fast), box-shadow var(--transition-fast)",
         }}
       >
         Try Again
       </button>
-    </main>
+    </div>
   );
 }

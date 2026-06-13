@@ -118,7 +118,7 @@ export default function Terminal() {
             : Math.max(0, historyIndex - 1);
 
         setHistoryIndex(newIndex);
-        setInputValue(commandHistory[newIndex]);
+        setInputValue(commandHistory[newIndex] ?? "");
         return;
       }
 
@@ -132,7 +132,7 @@ export default function Terminal() {
           setInputValue("");
         } else {
           setHistoryIndex(newIndex);
-          setInputValue(commandHistory[newIndex]);
+          setInputValue(commandHistory[newIndex] ?? "");
         }
       }
     },

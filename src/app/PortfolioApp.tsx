@@ -57,7 +57,7 @@ function SectionError({ name }: { name: string }) {
 
 export default function PortfolioApp() {
   const [isMounted, setIsMounted] = useState(false);
-  const { currentHash, navigateTo } = useRouteHash();
+  const [currentHash, navigateTo] = useRouteHash();
 
   useEffect(() => {
     setIsMounted(true);

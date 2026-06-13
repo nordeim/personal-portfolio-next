@@ -1,67 +1,46 @@
-"use client";
+import { useState, useEffect, useCallback } from "react";
 
-import { useCallback, useEffect, useState } from "react";
+const VALID_SECTIONS = [
+  "hero",
+  "who",
+  "work",
+  "skills",
+  "music",
+  "now",
+  "contact",
+] as const;
 
-interface UseRouteHashReturn {
-  readonly currentHash: string;
-  readonly navigateTo: (hash: string) => void;
+type Section = (typeof VALID_SECTIONS)[number];
+
+function getHashFromWindow(): string {
+  if (typeof window === "undefined") return "hero";
+  const hash = window.location.hash.replace("#", "");
+  return VALID_SECTIONS.includes(hash as Section) ? hash : "hero";
 }
 
-export function useRouteHash(): UseRouteHashReturn {
-  const [currentHash, setCurrentHash] = useState<string>("");
+export function useRouteHash(): [string, (section: string) => void] {
+  const [activeSection, setActiveSectionState] = useState<string>(
+    getHashFromWindow
+  );
 
-  // Read initial hash on mount
-  useEffect(() => {
-    const hash = window.location.hash || "#hero";
-    setCurrentHash(hash);
-
-    // If there's a hash in the URL, scroll to it
-    const target = document.getElementById(hash.slice(1));
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth" });
-    }
+  const setActiveSection = useCallback((section: string) => {
+    const valid = VALID_SECTIONS.includes(section as Section)
+      ? section
+      : "hero";
+    window.location.hash = valid;
+    setActiveSectionState(valid);
   }, []);
 
-  // Listen for hash changes (browser back/forward)
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash || "#hero";
-      setCurrentHash(hash);
-
-      // Move focus to the target section for accessibility
-      const target = document.getElementById(hash.slice(1));
-      if (target) {
-        target.setAttribute("tabindex", "-1");
-        target.focus({ preventScroll: true });
-        target.addEventListener(
-          "blur",
-          () => target.removeAttribute("tabindex"),
-          { once: true },
-        );
-      }
-    };
+    function handleHashChange() {
+      const hash = window.location.hash.replace("#", "");
+      const valid = VALID_SECTIONS.includes(hash as Section) ? hash : "hero";
+      setActiveSectionState(valid);
+    }
 
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
-  const navigateTo = useCallback((hash: string) => {
-    window.location.hash = hash;
-
-    const target = document.getElementById(hash.slice(1));
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth" });
-
-      // Move focus for screen readers
-      target.setAttribute("tabindex", "-1");
-      target.focus({ preventScroll: true });
-      target.addEventListener(
-        "blur",
-        () => target.removeAttribute("tabindex"),
-        { once: true },
-      );
-    }
-  }, []);
-
-  return { currentHash, navigateTo } as const;
+  return [activeSection, setActiveSection];
 }

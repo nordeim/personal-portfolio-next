@@ -1,83 +1,71 @@
-'use client';
+import { useEffect, useRef, useCallback } from "react";
+import { useReducedMotion } from "./useReducedMotion";
 
-import { useEffect, useRef, useState } from 'react';
-import { useReducedMotion } from './useReducedMotion';
+interface WeightedScrollOptions {
+  weight?: number;
+  duration?: number;
+}
 
-const MIN_WEIGHT = 200;
-const MAX_WEIGHT = 950;
-const FRICTION = 0.85;
-const VELOCITY_GAIN = 0.6;
+export function useWeightedScroll(
+  containerRef: React.RefObject<HTMLElement | null>,
+  options: WeightedScrollOptions = {}
+) {
+  const { weight = 0.1, duration = 1000 } = options;
+  const prefersReducedMotion = useReducedMotion();
+  const targetScrollTop = useRef(0);
+  const currentScrollTop = useRef(0);
+  const animationFrame = useRef<number | null>(null);
+  const isAnimating = useRef(false);
 
-/**
- * Maps vertical scroll velocity to a font-weight value (200-950).
- * - Fast scroll → thin weight (200)
- * - Slow scroll → heavy weight (950)
- * - Static     → heavy weight (950, friction settles)
- *
- * Respects `prefers-reduced-motion`: returns a static 950.
- */
-export function useWeightedScroll(): number {
-  const [fontWeight, setFontWeight] = useState(MAX_WEIGHT);
-  const prefersReduced = useReducedMotion();
-  const lastYRef = useRef(0);
-  const lastTimeRef = useRef(0);
-  const velocityRef = useRef(0);
-  const rafRef = useRef<number | null>(null);
-  const isRunningRef = useRef(false);
+  const animate = useCallback(() => {
+    if (prefersReducedMotion) return;
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (prefersReduced) {
-      setFontWeight(MAX_WEIGHT);
+    const diff = targetScrollTop.current - currentScrollTop.current;
+
+    if (Math.abs(diff) < 0.5) {
+      currentScrollTop.current = targetScrollTop.current;
+      if (containerRef.current) {
+        containerRef.current.scrollTop = targetScrollTop.current;
+      }
+      isAnimating.current = false;
       return;
     }
 
-    const measureVelocity = (): void => {
-      const currentY = window.scrollY;
-      const currentTime = performance.now();
+    currentScrollTop.current += diff * weight;
 
-      if (lastTimeRef.current > 0) {
-        const dt = currentTime - lastTimeRef.current;
-        if (dt > 0) {
-          const dy = Math.abs(currentY - lastYRef.current);
-          const instantVelocity = dy / dt;
-          velocityRef.current =
-            velocityRef.current * FRICTION + instantVelocity * (1 - FRICTION);
-        }
-      }
-
-      lastYRef.current = currentY;
-      lastTimeRef.current = currentTime;
-    };
-
-    const tick = (): void => {
-      measureVelocity();
-
-      const v = Math.min(velocityRef.current, 3);
-      const normalized = v / 3;
-      const weight = Math.round(
-        MAX_WEIGHT - normalized * VELOCITY_GAIN * (MAX_WEIGHT - MIN_WEIGHT)
-      );
-
-      setFontWeight(weight);
-      rafRef.current = requestAnimationFrame(tick);
-    };
-
-    if (!isRunningRef.current) {
-      isRunningRef.current = true;
-      lastYRef.current = window.scrollY;
-      lastTimeRef.current = performance.now();
-      rafRef.current = requestAnimationFrame(tick);
+    if (containerRef.current) {
+      containerRef.current.scrollTop = currentScrollTop.current;
     }
 
+    animationFrame.current = requestAnimationFrame(animate);
+  }, [containerRef, weight, prefersReducedMotion]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || prefersReducedMotion) return;
+
+    function handleWheel(e: WheelEvent) {
+      e.preventDefault();
+
+      const maxScroll = container!.scrollHeight - container!.clientHeight;
+      targetScrollTop.current = Math.max(
+        0,
+        Math.min(targetScrollTop.current + e.deltaY, maxScroll)
+      );
+
+      if (!isAnimating.current) {
+        isAnimating.current = true;
+        animationFrame.current = requestAnimationFrame(animate);
+      }
+    }
+
+    container.addEventListener("wheel", handleWheel, { passive: false });
+
     return () => {
-      isRunningRef.current = false;
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
+      container.removeEventListener("wheel", handleWheel);
+      if (animationFrame.current !== null) {
+        cancelAnimationFrame(animationFrame.current);
       }
     };
-  }, [prefersReduced]);
-
-  return fontWeight;
+  }, [containerRef, animate, prefersReducedMotion]);
 }

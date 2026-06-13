@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import type { SocialLink } from '@/lib/types';
+import type { SocialLink, SocialIconVariant } from '@/lib/types';
 import { SocialIcon } from './SocialIcon';
 import { BrandMark } from './BrandMark';
 
@@ -120,12 +120,12 @@ export function MobileDrawer({
           <div className="flex flex-col gap-2">
             {socialLinks.map((link) => (
               <a
-                key={link.href}
-                href={link.href}
+                key={link.url}
+                href={link.url}
                 className="flex items-center gap-3 py-2 font-utility text-xs uppercase tracking-widest hover:text-[var(--color-accent-code)]"
               >
-                <SocialIcon variant={link.icon} size={16} />
-                {link.label}
+                <SocialIcon variant={(link.icon as SocialIconVariant | undefined) ?? "mail"} size={16} />
+                {link.platform}
               </a>
             ))}
           </div>

@@ -1,72 +1,65 @@
-import Link from "next/link";
+"use client";
 
 export default function NotFound() {
   return (
-    <main
-      aria-labelledby="not-found-heading"
+    <div
       style={{
+        minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        minHeight: "100vh",
-        padding: "var(--spacing-grid)",
-        fontFamily: "var(--font-mono)",
-        textAlign: "center" as const,
+        fontFamily: "var(--font-mono, monospace)",
+        color: "var(--color-text-primary, #f0ece4)",
+        gap: "1rem",
+        padding: "2rem",
       }}
     >
       <p
         style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.75rem",
-          letterSpacing: "0.2em",
-          textTransform: "uppercase" as const,
-          color: "var(--color-accent)",
-          marginBottom: "var(--spacing-half)",
+          fontSize: "3rem",
+          fontWeight: 300,
+          fontFamily: "var(--font-editorial, serif)",
         }}
       >
         404
       </p>
-      <h1
-        id="not-found-heading"
-        style={{
-          fontFamily: "var(--font-display)",
-          fontSize: "clamp(2rem, 5vw, 4rem)",
-          fontWeight: 600,
-          marginBottom: "var(--spacing-half)",
-          color: "var(--color-text-primary)",
-        }}
-      >
-        Page Not Found
-      </h1>
       <p
         style={{
           fontSize: "0.875rem",
-          color: "var(--color-text-muted)",
-          marginBottom: "var(--spacing-grid)",
-          maxWidth: "400px",
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
         }}
       >
-        The page you&apos;re looking for doesn&apos;t exist or has been moved.
+        Page not found
       </p>
-      <Link
+      <p
+        style={{
+          color: "var(--color-text-muted, #6b6560)",
+          fontSize: "0.75rem",
+          maxWidth: "40ch",
+          textAlign: "center",
+        }}
+      >
+        The page you are looking for does not exist.
+      </p>
+      <a
         href="/"
         style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.8125rem",
-          letterSpacing: "0.05em",
-          textTransform: "uppercase" as const,
+          marginTop: "1rem",
+          padding: "0.5rem 1.5rem",
+          background: "var(--color-accent, #e8c547)",
+          color: "var(--color-bg, #0a0a0a)",
+          border: "none",
+          fontFamily: "var(--font-mono, monospace)",
+          fontSize: "0.75rem",
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
           textDecoration: "none",
-          padding: "var(--spacing-half) var(--spacing-grid)",
-          border: "2px solid var(--color-border)",
-          background: "var(--color-text-primary)",
-          color: "var(--color-text-inverse)",
-          boxShadow: "var(--shadow-brutal)",
-          borderRadius: 0,
         }}
       >
         Go Home
-      </Link>
-    </main>
+      </a>
+    </div>
   );
 }

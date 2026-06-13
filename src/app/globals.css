@@ -1,319 +1,128 @@
-/* ─── Google Fonts (DM Sans replaces Inter for anti-generic identity) ─── */
-@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap");
-
 @import "tailwindcss";
 
-/* ─── Tailwind v4 Theme: Tactile Brutalism Design Tokens ─── */
 @theme {
-  /* Typography */
-  --font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
-  --font-body: "DM Sans", system-ui, -apple-system, sans-serif;
-  --font-mono: "IBM Plex Mono", "Courier New", Courier, monospace;
+  /* ── Color Tokens (Night Theme — Default) ─────── */
+  --color-bg: #0a0a0a;
+  --color-bg-soft: #111111;
+  --color-surface: #1a1a1a;
+  --color-border: #222222;
+  --color-border-strong: #333333;
 
-  /* 28px Grid Spacing */
+  --color-text-primary: #f0ece4;
+  --color-text-secondary: #a8a29e;
+  --color-text-muted: #6b6560;
+
+  --color-accent: #e8c547;
+  --color-accent-hover: #f0d060;
+  --color-accent-muted: #e8c54733;
+
+  /* ── Font Families ────────────────────────────── */
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "Fira Code", monospace;
+  --font-serif: "Cormorant Garamond", "Georgia", serif;
+
+  /* Semantic font aliases */
+  --font-editorial: "Cormorant Garamond", "Georgia", serif;
+  --font-utility: "IBM Plex Mono", "Fira Code", monospace;
+  --font-body: "DM Sans", system-ui, sans-serif;
+
+  /* ── Z-Index Scale ────────────────────────────── */
+  --z-index-grain: 50;
+  --z-index-machine: 40;
+  --z-index-mobile-backdrop: 45;
+  --z-index-mobile-drawer: 46;
+  --z-index-skip-link: 100;
+  --z-index-loader: 60;
+
+  /* ── Spacing ──────────────────────────────────── */
   --spacing-grid: 28px;
-  --spacing-half: 14px;
-  --spacing-quarter: 7px;
-  --spacing-double: 56px;
-  --spacing-triple: 84px;
-  --spacing-quad: 112px;
 
-  /* Day Theme Colors (default) */
+  /* ── Animations ───────────────────────────────── */
+  --animate-fade-in: fade-in 0.6s ease forwards;
+  --animate-fade-up: fade-up 0.6s ease forwards;
+  --animate-slide-in: slide-in 0.4s ease forwards;
+}
+
+/* ── Day Theme Overrides ───────────────────────── */
+[data-theme="day"] {
   --color-bg: #f5f0e8;
-  --color-bg-elevated: #ede8df;
-  --color-bg-sunken: #e8e2d8;
-  --color-surface: #faf7f2;
-  --color-surface-hover: #f0ebe2;
-  --color-border: #2d2d2d;
-  --color-border-subtle: #c4bfb4;
-  --color-text-primary: #1a1a1a;
-  --color-text-secondary: #4a4540;
-  --color-text-muted: #7a756e;
-  --color-text-inverse: #f5f0e8;
-  --color-accent: #c0392b;
-  --color-accent-hover: #a93226;
-  --color-accent-subtle: rgba(192, 57, 43, 0.08);
-  --color-highlight: #d4a843;
-  --color-success: #27ae60;
-  --color-error: #c0392b;
-  --color-warning: #d4a843;
-  --color-focus-ring: #c0392b;
+  --color-bg-soft: #ede8df;
+  --color-surface: #e5e0d6;
+  --color-border: #d5cfc4;
+  --color-border-strong: #b8b0a2;
 
-  /* Night Theme Overrides via data attribute */
-  --color-night-bg: #0d0d0d;
-  --color-night-bg-elevated: #1a1a1a;
-  --color-night-bg-sunken: #080808;
-  --color-night-surface: #141414;
-  --color-night-surface-hover: #222222;
-  --color-night-border: #f5f0e8;
-  --color-night-border-subtle: #333333;
-  --color-night-text-primary: #f0ece4;
-  --color-night-text-secondary: #b8b2a6;
-  --color-night-text-muted: #7a7570;
-  --color-night-text-inverse: #0d0d0d;
-  --color-night-accent: #e8c547;
-  --color-night-accent-hover: #f0d060;
-  --color-night-accent-subtle: rgba(232, 197, 71, 0.08);
-  --color-night-highlight: #c0392b;
-  --color-night-focus-ring: #e8c547;
+  --color-text-primary: #1a1612;
+  --color-text-secondary: #5c5650;
+  --color-text-muted: #8a8478;
 
-  /* Shadows */
-  --shadow-brutal: 4px 4px 0px 0px var(--color-border);
-  --shadow-brutal-sm: 2px 2px 0px 0px var(--color-border);
-  --shadow-brutal-lg: 6px 6px 0px 0px var(--color-border);
-  --shadow-brutal-hover: 6px 6px 0px 0px var(--color-border);
-  --shadow-night-brutal: 4px 4px 0px 0px var(--color-night-border);
-  --shadow-night-brutal-sm: 2px 2px 0px 0px var(--color-night-border);
-  --shadow-night-brutal-lg: 6px 6px 0px 0px var(--color-night-border);
-  --shadow-night-brutal-hover: 6px 6px 0px 0px var(--color-night-border);
-
-  /* Border Radius — ZERO for brutalism */
-  --radius-none: 0px;
-
-  /* Transitions */
-  --transition-fast: 120ms ease;
-  --transition-base: 200ms ease;
-  --transition-slow: 400ms ease-out;
+  --color-accent: #b8860b;
+  --color-accent-hover: #996f08;
+  --color-accent-muted: #b8860b22;
 }
 
-/* ─── Base Reset ─── */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+/* ── Base Styles ───────────────────────────────── */
 html {
-  font-size: 16px;
+  color-scheme: dark light;
   scroll-behavior: smooth;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
 }
 
-/* ─── Day Theme (Default) ─── */
 body {
   font-family: var(--font-body);
   background-color: var(--color-bg);
   color: var(--color-text-primary);
-  line-height: 1.65;
-  border-radius: 0;
-  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ─── Night Theme ─── */
-body[data-theme="night"] {
-  background-color: var(--color-night-bg);
-  color: var(--color-night-text-primary);
+/* ── Focus Styles (WCAG AAA) ───────────────────── */
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
-/* ─── Skip-to-Content Link (WCAG AAA) ─── */
+/* ── Skip Link ─────────────────────────────────── */
 .skip-link {
   position: absolute;
   top: -100%;
-  left: var(--spacing-half);
-  z-index: 9999;
-  padding: var(--spacing-half) var(--spacing-grid);
+  left: 16px;
+  z-index: var(--z-index-skip-link);
+  padding: 8px 16px;
   background: var(--color-accent);
-  color: var(--color-text-inverse);
-  font-family: var(--font-mono);
+  color: var(--color-bg);
+  font-family: var(--font-utility);
   font-size: 0.875rem;
-  font-weight: 600;
   text-decoration: none;
-  border: 2px solid var(--color-border);
-  border-radius: 0;
-  box-shadow: var(--shadow-brutal-sm);
-  transition: top var(--transition-fast);
+  transition: top 0.2s ease;
 }
 
 .skip-link:focus {
-  top: var(--spacing-half);
-  outline: 3px solid var(--color-focus-ring);
-  outline-offset: 2px;
+  top: 16px;
 }
 
-body[data-theme="night"] .skip-link {
-  background: var(--color-night-accent);
-  color: var(--color-night-text-inverse);
-  border-color: var(--color-night-border);
-  box-shadow: var(--shadow-night-brutal-sm);
-  outline-color: var(--color-night-focus-ring);
+/* ── Grid Overlay ──────────────────────────────── */
+.grid-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-index-grain);
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--color-border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
+  background-size: var(--spacing-grid) var(--spacing-grid);
+  opacity: 0.15;
 }
 
-/* ─── Focus Styles (WCAG AAA — visible, high-contrast focus rings) ─── */
-:focus-visible {
-  outline: 3px solid var(--color-focus-ring);
-  outline-offset: 2px;
-  border-radius: 0;
+/* ── Grain Texture ─────────────────────────────── */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-index-grain);
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
 }
 
-body[data-theme="night"] :focus-visible {
-  outline-color: var(--color-night-focus-ring);
-}
-
-/* Remove default outline for mouse users */
-:focus:not(:focus-visible) {
-  outline: none;
-}
-
-/* ─── Typography ─── */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display);
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-}
-
-code, pre, kbd, samp {
-  font-family: var(--font-mono);
-}
-
-a {
-  color: var(--color-accent);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  transition: color var(--transition-fast);
-}
-
-a:hover {
-  color: var(--color-accent-hover);
-}
-
-body[data-theme="night"] a {
-  color: var(--color-night-accent);
-}
-
-body[data-theme="night"] a:hover {
-  color: var(--color-night-accent-hover);
-}
-
-/* ─── Selection ─── */
-::selection {
-  background: var(--color-accent);
-  color: var(--color-text-inverse);
-}
-
-body[data-theme="night"] ::selection {
-  background: var(--color-night-accent);
-  color: var(--color-night-text-inverse);
-}
-
-/* ─── Scrollbar (Brutalist) ─── */
-::-webkit-scrollbar {
-  width: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--color-bg);
-  border-left: 2px solid var(--color-border);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-secondary);
-}
-
-body[data-theme="night"] ::-webkit-scrollbar-track {
-  background: var(--color-night-bg);
-  border-left-color: var(--color-night-border-subtle);
-}
-
-body[data-theme="night"] ::-webkit-scrollbar-thumb {
-  background: var(--color-night-border-subtle);
-}
-
-body[data-theme="night"] ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-night-text-muted);
-}
-
-/* ─── Brutalist Utility Classes ─── */
-.brutal-border {
-  border: 2px solid var(--color-border);
-}
-
-body[data-theme="night"] .brutal-border {
-  border-color: var(--color-night-border);
-}
-
-.brutal-shadow {
-  box-shadow: var(--shadow-brutal);
-}
-
-body[data-theme="night"] .brutal-shadow {
-  box-shadow: var(--shadow-night-brutal);
-}
-
-.brutal-shadow-sm {
-  box-shadow: var(--shadow-brutal-sm);
-}
-
-body[data-theme="night"] .brutal-shadow-sm {
-  box-shadow: var(--shadow-night-brutal-sm);
-}
-
-.brutal-shadow-lg {
-  box-shadow: var(--shadow-brutal-lg);
-}
-
-body[data-theme="night"] .brutal-shadow-lg {
-  box-shadow: var(--shadow-night-brutal-lg);
-}
-
-.brutal-hover {
-  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
-}
-
-.brutal-hover:hover {
-  box-shadow: var(--shadow-brutal-hover);
-  transform: translate(-2px, -2px);
-}
-
-body[data-theme="night"] .brutal-hover:hover {
-  box-shadow: var(--shadow-night-brutal-hover);
-}
-
-/* ─── Grid System (28px base) ─── */
-.grid-28 {
-  display: grid;
-  gap: var(--spacing-grid);
-}
-
-.grid-28-2col {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-grid);
-}
-
-.grid-28-3col {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-grid);
-}
-
-@media (max-width: 768px) {
-  .grid-28-2col,
-  .grid-28-3col {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ─── Responsive Font Scaling ─── */
-@media (max-width: 768px) {
-  html {
-    font-size: 15px;
-  }
-}
-
-@media (max-width: 480px) {
-  html {
-    font-size: 14px;
-  }
-}
-
-/* ─── Reduced Motion (WCAG AAA) ─── */
+/* ── Reduced Motion ────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -325,86 +134,42 @@ body[data-theme="night"] .brutal-hover:hover {
   }
 }
 
-/* ─── Screen Reader Only ─── */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
+/* ── Selection ─────────────────────────────────── */
+::selection {
+  background: var(--color-accent-muted);
+  color: var(--color-text-primary);
 }
 
-/* ─── Animated Underline ─── */
-.animated-underline {
-  position: relative;
-  display: inline-block;
-  text-decoration: none;
+/* ── Scrollbar ─────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
 }
 
-.animated-underline::after {
-  content: "";
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background-color: var(--color-accent);
-  transition: width var(--transition-base);
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
 }
 
-.animated-underline:hover::after {
-  width: 100%;
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 3px;
 }
 
-body[data-theme="night"] .animated-underline::after {
-  background-color: var(--color-night-accent);
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
 }
 
-/* ─── Keyframe Animations ─── */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
+/* ── Keyframes ─────────────────────────────────── */
+@keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-/* ─── Section Transitions (for hash-based navigation) ─── */
-.section-enter {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.section-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity var(--transition-slow), transform var(--transition-slow);
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
 }
