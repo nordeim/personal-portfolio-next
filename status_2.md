@@ -92,3 +92,36 @@ All tasks are done. Here's the comprehensive result:
 
 - **TypeScript typecheck**: ✅ PASS — 0 errors
 - **Next.js production build**: ✅ PASS — Compiled in 2.2s, 3 routes generated (`/`, `/_not-found`, `/api/health`)
+
+---
+
+I see the archive includes some leftover files from the repo root (old tarball, persona zip, error.txt). Let me recreate it clean:
+Archive is clean and verified. Here's the summary:
+
+---
+
+**Archive created:** `/home/z/my-project/download/personal-portfolio-next-remediated.tar.gz`
+
+| Detail | Value |
+|---|---|
+| **Size** | 295 KB |
+| **Total entries** | 97 files/directories |
+| **Excluded** | `node_modules/`, `.next/`, `.git/`, old tarball, persona zip, error.txt |
+
+**To refresh your GitHub repo:**
+
+```bash
+# 1. Extract the archive into your repo root
+cd your-repo-directory
+tar xzf personal-portfolio-next-remediated.tar.gz
+
+# 2. Review changes
+git diff --stat
+
+# 3. Stage, commit, and push
+git add -A
+git commit -m "chore: apply Remediation 2 — 14 files updated, 34 type errors resolved, clean typecheck + build"
+git push origin main
+```
+
+The archive contains the full remediated codebase with all 14 files from `Remediation_2.md` plus the 11 additional fixes I applied to resolve type errors. TypeScript typecheck and Next.js production build both pass clean.
