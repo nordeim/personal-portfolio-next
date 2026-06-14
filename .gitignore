@@ -15,3 +15,8 @@ upload/
 .gemini
 .claude
 .agents
+
+# Security: prevent credential leaks
+drizzle.config.json
+.env
+.env.local
