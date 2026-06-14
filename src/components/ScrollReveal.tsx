@@ -18,19 +18,15 @@ export default function ScrollReveal({
   threshold = 0.15,
   className,
 }: ScrollRevealProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
+  // When reduced motion is preferred skip the reveal animation and show
+  // the content immediately so no observer / effect is needed.
+  const [isVisible, setIsVisible] = useState(prefersReducedMotion);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
-
-    // Respect reduced motion — skip animation, show immediately
-    if (prefersReducedMotion) {
-      setIsVisible(true);
-      return;
-    }
+    if (!el || prefersReducedMotion) return;
 
     const observer = new IntersectionObserver(
       (entries) => {

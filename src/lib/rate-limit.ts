@@ -85,7 +85,7 @@ export function getClientIp(request: Request): string {
     null;
 
   if (!forwarded) {
-    // eslint-disable-next-line no-console
+     
     console.warn(
       "[RateLimit] No proxy headers found. Falling back to 127.0.0.1. " +
       "Set TRUST_PROXY env var if behind a trusted proxy."

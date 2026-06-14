@@ -233,3 +233,78 @@ index ebd8bf6..fe11454 100644
  ### Missing Portrait Assets
  Archived `data.ts` references `/portraits/*.webp` files that don't exist in `public/`. Either add the assets or remove the references.
 
+# Run final ESLint verification
+$ npx eslint src/ --no-error-on-unmatched-pattern 2>&1
+/home/project/personal-portfolio-next/src/app/layout.tsx
+  98:9  warning  Custom fonts not added in `pages/_document.js` will only load for a single page. This is discouraged. See: https://nextjs.org/docs/messages/no-page-custom-font  @next/next/no-page-custom-font
+✖ 1 problem (0 errors, 1 warning)
+# Run Next.js build final verification
+$ npm run build 2>&1 | tail -30
+> npm run typecheck && next build
+> personal-portfolio-next@2.0.0 typecheck
+> tsc --noEmit
+▲ Next.js 16.2.9 (Turbopack)
+  Creating an optimized production build ...
+✓ Compiled successfully in 5.4s
+…
+Click to expand
+# Todos
+[✓] Validate codebase alignment with CONSOLIDATED_REMEDIATION_PLAN.md and status_5.md
+[✓] Review error.tsx - type guard and CSS variables ✅
+[✓] Review not-found.tsx - Server Component, Link, CSS variables ✅
+[✓] Review next.config.ts - security headers ✅
+[✓] Review rate-limit.ts - proxy trust configuration ✅
+[✓] Review HeroKinetic.tsx - onNavigate wiring ✅
+[✓] Review Navigation.tsx - focus trap ✅
+[✓] Review ProjectCard.tsx - Next.js Image ✅
+[✓] Review ContactSection.tsx - re-render fix ✅
+[✓] Review globals.css - grain overlay optimization ✅
+[✓] Review PortfolioApp.tsx - AccessibilityProvider removal ✅
+[✓] Review Terminal.tsx - key/8px/executeCommand fixes ✅
+[✓] Review route.ts - body size limit ✅
+[✓] Review useRouteHash.ts - history.pushState ✅
+[✓] Review eslint.config.mjs - jsx-a11y ✅
+[✓] Fix AccessibilityProvider still existing (should be removed per Remediation 5) ✅
+[✓] Fix HeroKinetic.tsx ESLint error (setState in effect) ✅
+[✓] Fix useReducedMotion.ts ESLint error (setState in effect) ✅
+[✓] Fix ScrollReveal.tsx ESLint error (setState in effect) ✅
+[✓] Fix ThemeSwitch.tsx ESLint error (setState in effect) ✅
+[✓] Fix Timeline.tsx hardcoded 8px ✅
+[✓] Run final typecheck, lint, and build verification ✅
+I've completed the meticulous validation of the codebase against both CONSOLIDATED_REMEDIATION_PLAN.md and status_5.md. Here's the comprehensive alignment report:
+Alignment Validation Report
+Remediation Plan Items Confirmed (from CONSOLIDATED_REMEDIATION_PLAN.md)
+ID	Status	File
+error.tsx type guard	Aligned	error: unknown with isErrorLike() guard, CSS variables used
+not-found.tsx Server Component	Aligned	"use client" removed, Next.js Link component, CSS variables
+next.config.ts security headers	Aligned	CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
+rate-limit.ts proxy trust	Aligned	Warning log, TRUST_PROXY documentation, fallback to 127.0.0.1
+HeroKinetic.tsx navigation	Aligned	onNavigate prop wired, e.preventDefault() handled
+Navigation.tsx focus trap	Aligned	Tab focus cycling within mobile menu
+ProjectCard.tsx Next.js Image	Aligned	next/image with lazy loading and responsive sizing
+ContactSection.tsx re-render	Aligned	handleChange dependency array fixed, functional updates for setErrors
+globals.css grain overlay	Aligned	baseFrequency optimized to 0.65
+PortfolioApp.tsx provider removal	Aligned	AccessibilityProvider removed
+Terminal.tsx improvements	Aligned	Stable id added, newLine() extracted, 8px → CSS variable
+route.ts body size limit	Aligned	MAX_BODY_SIZE (10KB) check before JSON parsing
+useRouteHash.ts pushState	Aligned	history.pushState with popstate event listener
+Additional Fixes Applied During Validation
+While running the full alignment, several extra issues were discovered and resolved:
+Fix	Description
+AccessibilityProvider.tsx	Deleted — file was supposed to be removed in Remediation 5 but was still present
+HeroKinetic.tsx ESLint error	Fixed synchronous setState inside useEffect by initializing state directly with the reduced-motion preference
+ScrollReveal.tsx ESLint error	Fixed synchronous setState inside useEffect by initializing state directly with the reduced-motion preference
+ThemeSwitch.tsx ESLint error	Fixed synchronous setState inside useEffect by using a lazy state initializer useState(getInitialTheme)
+useReducedMotion.ts ESLint error	Fixed synchronous setState inside useEffect by reading the preference directly in the state initializer
+Timeline.tsx hardcoded 8px	Replaced with var(--spacing-quarter)
+_archive/ ESLint exclusion	Added **/_archive/** to globalIgnores in eslint.config.mjs
+Remaining ESLint Warning (Non-Critical, Existing)
+Location	Message
+src/app/layout.tsx line 98	@next/next/no-page-custom-font — This is a known Next.js warning for loading Google Fonts via <link> tag in App Router, which is an intentional design choice.
+Verification Results
+TypeScript (tsc --noEmit):  ✅ Clear
+Build (next build):           ✅ Clear
+ESLint (npx eslint src/):    ✅ Clear (0 errors, 1 benign warning)
+Summary
+The codebase is now fully aligned with both CONSOLIDATED_REMEDIATION_PLAN.md and status_5.md. All 14 documented remediation items have been verified and are properly implemented. Seven additional issues were discovered and resolved during the validation process, bringing the codebase into a clean, lint-free, and type-safe state.
+

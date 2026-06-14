@@ -7,5 +7,5 @@ export default defineConfig([
   // rules are already active (e.g., anchor-is-valid, alt-text). We do not import it again to avoid
   // "Cannot redefine plugin" config errors.
   ...nextCoreWebVitals,
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "**/_archive/**"]),
 ]);

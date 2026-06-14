@@ -50,8 +50,8 @@ export default function Timeline() {
                 position: "absolute",
                 left: "calc(-1 * var(--spacing-grid) - 5px)",
                 top: "var(--spacing-grid)",
-                width: "8px",
-                height: "8px",
+                width: "var(--spacing-quarter)",
+                height: "var(--spacing-quarter)",
                 background: "var(--color-accent)",
                 border: "2px solid var(--color-border)",
               }}

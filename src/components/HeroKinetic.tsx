@@ -15,23 +15,22 @@ interface HeroKineticProps {
 }
 
 export default function HeroKinetic({ onNavigate }: HeroKineticProps) {
-  const [isAnimated, setIsAnimated] = useState(false);
-  const heroRef = useRef<HTMLElement>(null);
   const prefersReducedMotion = useReducedMotion();
+  // Initialize state directly based on reduced-motion preference.
+  // When motion is not reduced we start false and trigger the animation
+  // via a layout effect so CSS transitions run after paint.
+  const [isAnimated, setIsAnimated] = useState(prefersReducedMotion);
+  const heroRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    // Respect reduced motion preference
-    if (prefersReducedMotion) {
-      setIsAnimated(true);
-      return;
+    // When reduced motion is preferred the initial state is already true.
+    // Otherwise trigger the animation on mount so CSS transitions fire.
+    if (!prefersReducedMotion) {
+      const timer = requestAnimationFrame(() => {
+        setIsAnimated(true);
+      });
+      return () => cancelAnimationFrame(timer);
     }
-
-    // Trigger animation after mount
-    const timer = requestAnimationFrame(() => {
-      setIsAnimated(true);
-    });
-
-    return () => cancelAnimationFrame(timer);
   }, [prefersReducedMotion]);
 
   const containerStyle: CSSProperties = {

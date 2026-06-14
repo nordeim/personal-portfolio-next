@@ -6,23 +6,16 @@ interface ThemeSwitchProps {
   onThemeChange: (theme: "day" | "night") => void;
 }
 
-export default function ThemeSwitch({ onThemeChange }: ThemeSwitchProps) {
-  const [theme, setTheme] = useState<"day" | "night">("day");
+// Helper to read the initial theme without an effect
+function getInitialTheme(): "day" | "night" {
+  if (typeof window === "undefined") return "day";
+  const stored = localStorage.getItem("theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  return stored === "night" || stored === "day" ? stored : prefersDark ? "night" : "day";
+}
 
-  // Read initial theme from DOM (set by FOUC-prevention script) or localStorage
-  useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)",
-    ).matches;
-    const initial =
-      stored === "night" || stored === "day"
-        ? stored
-        : prefersDark
-          ? "night"
-          : "day";
-    setTheme(initial);
-  }, []);
+export default function ThemeSwitch({ onThemeChange }: ThemeSwitchProps) {
+  const [theme, setTheme] = useState<"day" | "night">(getInitialTheme);
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => {
