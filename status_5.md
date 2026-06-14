@@ -370,3 +370,99 @@ Build (next build):           ✅ Clear
 ESLint (npx eslint src/):    ✅ Clear (0 errors, 1 benign warning)
 All three documentation files are now fully aligned with the latest codebase state, including all fixes, lessons learned, outstanding issues, and recommendations.
 
+---
+
+Goal
+- 
+Meticulously review and update @README.md, @AGENTS.md, and @CLAUDE.md to align with the latest code changes, fixed issues, gotchas, troubleshooting tips, lessons learnt, outstanding issues, and recommendations.
+Constraints & Preferences
+- 
+Maintain consistency across all three documentation files
+- 
+Preserve exact file paths and error strings
+- 
+Use terse bullets, not prose paragraphs
+- 
+Ensure all numbering is sequential and correct
+Progress
+Done
+- 
+Updated README.md remediation history table with Remediation 6 (Full Codebase Alignment)
+- 
+Added new troubleshooting entry for ESLint setState in effect error
+- 
+Fixed Lessons Learnt numbering (1-31 now sequential)
+- 
+Added new lessons: instanceof Error unreliable on unknown, eslint-config-next bundles eslint-plugin-jsx-a11y, setState in useEffect anti-pattern, history.pushState for SPA routing, stable keys for mutable lists
+- 
+Updated Recommendations section (removed completed AccessibilityProvider consolidation)
+- 
+Added new Known Issue for @next/next/no-page-custom-font ESLint warning
+- 
+Updated AGENTS.md Current State to reflect six remediation phases
+- 
+Removed completed AccessibilityProvider consolidation from Outstanding Issues
+- 
+Added new AGENTS.md gotcha about _archive/ ESLint exclusion
+- 
+Fixed corrupted text in AGENTS.md (Chinese/English mix)
+- 
+Updated CLAUDE.md (prepared for edits)
+In Progress
+- 
+Finalizing CLAUDE.md updates to match latest standards and gotchas
+- 
+Running final typecheck, lint, and build verification
+Blocked
+- 
+(none)
+Key Decisions
+- 
+Initialize state directly in render instead of calling setState in useEffect to resolve React 19 ESLint errors
+- 
+Use lazy state initializers (useState(() => true)) when initial value depends on client-side APIs like matchMedia
+- 
+Add **/_archive/** to globalIgnores in eslint.config.mjs to prevent lint errors from dormant code
+- 
+Keep Google Fonts <link> approach despite @next/next/no-page-custom-font warning (intentional design choice for dual-theme system)
+Next Steps
+- 
+Complete CLAUDE.md updates (remediation history, gotchas, standards)
+- 
+Run final npm run typecheck, npm run lint, and npm run build verification
+- 
+Review all three files for consistency and completeness
+Critical Context
+- 
+React 19 strict linter flags synchronous setState inside useEffect as "Calling setState synchronously within an effect can trigger cascading renders"
+- 
+eslint-config-next/core-web-vitals already includes eslint-plugin-jsx-a11y; do NOT import separately
+- 
+instanceof Error does not reliably narrow unknown in TS strict mode; use isErrorLike() guard instead
+- 
+history.pushState does not fire hashchange; listen for popstate for back/forward navigation
+- 
+_archive/ directory contains dormant code with old CSS variable names; exclude from ESLint
+- 
+@next/next/no-page-custom-font warning from Google Fonts <link> in App Router is benign and intentional
+Relevant Files
+- 
+README.md: Main project documentation, updated with Remediation 6, new lessons, and recommendations
+- 
+AGENTS.md: Agent instructions, updated with six remediation phases and new gotchas
+- 
+CLAUDE.md: Claude-specific context, prepared for remediation history and standards updates
+- 
+eslint.config.mjs: Added **/_archive/** to globalIgnores
+- 
+src/hooks/useReducedMotion.ts: Refactored to avoid setState in useEffect
+- 
+src/components/HeroKinetic.tsx: Refactored to avoid setState in useEffect
+- 
+src/components/ScrollReveal.tsx: Refactored to avoid setState in useEffect
+- 
+src/components/ThemeSwitch.tsx: Refactored to use lazy state initializer
+- 
+src/components/Timeline.tsx: Fixed hardcoded 8px to var(--spacing-quarter)
+- 
+src/components/AccessibilityProvider.tsx: Deleted (was supposed to be removed in Remediation 5)
