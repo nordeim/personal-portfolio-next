@@ -118,3 +118,118 @@ Now I will generate the final linter check:
 Type check ✅
 Build ✅
 Running linter: Build passed perfectly, I have successfully completed all fixes. Now running the linter and preparing to generate the final summary. `
+
+$ git diff README.md
+diff --git a/README.md b/README.md
+index 28d4114..3afbf20 100644
+--- a/README.md
++++ b/README.md
+@@ -84,6 +84,7 @@ npm run build      # Production build (runs typecheck + next build)
+ | **7: Remediation 2** | Complete | 14 files updated, `Project` type consolidated, `noUncheckedIndexedAccess` enabled, 34 type errors resolved |
+ | **8: Remediation 3** | Complete | All 14 missing CSS variables defined in `@theme` with day overrides, hash routing aligned, theme target unified on `<html>`, system preference detection added, site config centralized (`site-config.ts`), contact API endpoint with rate limiting, dead code archived to `_archive/` directories |
+ | **9: Remediation 4** | Complete | Scrollbar `border-radius` fixed to 0, `drizzle.config.json` converted to `.ts` with env vars, `.env.example` created, `ContactApiResponse` discriminated union added, `prefersHighContrast` removed, `useReducedMotion` hook adopted in animation components, text-muted contrast ratios fixed to WCAG AA, focus management added to `useRouteHash`, ARIA attributes verified on interactive widgets |
++| **10: Remediation 5 (Code Review Fixes)** | Complete | `error.tsx` type guard, `not-found.tsx` Server Component, `next.config.ts` security headers, `rate-limit.ts` proxy trust, `HeroKinetic.tsx` navigation delegation, `Navigation.tsx` focus trap, `ProjectCard.tsx` Next.js Image, `ContactSection.tsx` re-render fix, `globals.css` performance optimization, `PortfolioApp.tsx` sync setState removal, `Terminal.tsx` key/8px/executeCommand fixes, `route.ts` body size limit, `useRouteHash.ts` `history.pushState`, `eslint.config.mjs` a11y plugin notes |
+ 
+ ## Testing
+ 
+@@ -135,6 +136,27 @@ The theme system uses `localStorage` with the key `"theme"`. `ThemeScript` (inli
+ 
+ The `drizzle.config.ts` file throws an error if `DATABASE_URL` is not set. This is intentional — Drizzle Kit commands (`push`, `studio`, `generate`) require a database connection. The main application runs fine without it (DB features are optional), but Drizzle Kit itself needs the URL.
+ 
++### Code Review Fixes (2026-06-14)
++
++| Symptom | Component | Fix |
++| :--- | :--- | :--- |
++| `Property 'message' does not exist on type '{}'` | `src/app/error.tsx` | Use `isErrorLike` type guard instead of `instanceof Error` for `unknown` error prop |
++| Client-side `not-found.tsx` with hardcoded `<a>` | `src/app/not-found.tsx` | Convert to Server Component; replace `<a>` with Next.js `<Link>` |
++| Missing security headers | `next.config.ts` | Add `Strict-Transport-Security` and `Content-Security-Policy` headers |
++| Rate limiter vulnerable to spoofed X-Forwarded-For | `src/lib/rate-limit.ts` | Document proxy trust boundary; add warning log and `__no_hash__` fallback |
++| Hero CTA not wired to navigation | `src/components/HeroKinetic.tsx` | Delegate to `onNavigate` prop on "View Work" button |
++| Mobile menu lacks focus trap | `src/components/Navigation.tsx` | Implement Tab key cycling within mobile menu |
++| Raw `<img>` tag instead of Next.js Image | `src/components/ProjectCard.tsx` | Replace with Next.js `<Image>` component |
++| Excessive re-renders on contact form input | `src/components/ContactSection.tsx` | Remove `errors` from `handleChange` dependency array |
++| Grain overlay causes layout thrashing | `src/app/globals.css` | Reduce `baseFrequency` from `0.9` to `0.65` |
++| Redundant AccessibilityProvider context | `src/app/PortfolioApp.tsx` | Remove `AccessibilityProvider`; use `useReducedMotion()` directly |
++| Unstable array keys in terminal output | `src/components/Terminal.tsx` | Add stable `id` to history entries; use `line.id` as `key` |
++| Hardcoded `8px` spacing in Terminal | `src/components/Terminal.tsx` | Replace with `var(--spacing-quarter)` |
++| Inline object creation in executeCommand | `src/components/Terminal.tsx` | Extract `newLine()` helper; refactor `executeCommand` to use it |
++| No request body size limit on contact API | `src/app/api/contact/route.ts` | Add `MAX_BODY_SIZE` (10KB) check before JSON parsing |
++| `window.location.hash` triggers browser scroll | `src/hooks/useRouteHash.ts` | Use `history.pushState` instead; listen for `popstate` event |
++| `eslint-plugin-jsx-a11y` conflicts with Next.js config | `eslint.config.mjs` | Plugin is already bundled in `eslint-config-next`; add explanatory comment |
++
+ ## Known Issues
+ 
+ ### Moderate
+@@ -147,9 +169,8 @@ The `drizzle.config.ts` file throws an error if `DATABASE_URL` is not set. This
+ 
+ ### Low
+ 
+-6. **`useAccessibility()` hook still not consumed** — `AccessibilityProvider` was simplified in Remediation 4 (removed unused `prefersHighContrast`), and `HeroKinetic`/`ScrollReveal` now use `useReducedMotion()` directly instead of inline `window.matchMedia`. However, no component consumes the context hook from `AccessibilityProvider` — the two systems (`useAccessibility` context vs. standalone `useReducedMotion` hook) remain redundant.
+-7. **Archived components use old CSS variable names** — Components in `_archive/` reference shorthand variable names (`--border-color`, `--text-primary`, etc.) that don't exist in `@theme`. Must be updated before reintegration.
+-8. **In-memory rate limiting only** — `rate-limit.ts` uses a `Map` that doesn't persist across server instances or restarts. Suitable for single-instance deployments only; replace with Redis/Upstash for production multi-instance deployments.
++6. **Archived components use old CSS variable names** — Components in `_archive/` reference shorthand variable names (`--border-color`, `--text-primary`, etc.) that don't exist in `@theme`. Must be updated before reintegration.
++7. **In-memory rate limiting only** — `rate-limit.ts` uses a `Map` that doesn't persist across server instances or restarts. Suitable for single-instance deployments only; replace with Redis/Upstash for production multi-instance deployments.
+ 
+ ## Lessons Learnt
+ 
+@@ -174,12 +195,17 @@ The `drizzle.config.ts` file throws an error if `DATABASE_URL` is not set. This
+ 19. **Remove unused features rather than leaving them half-implemented** — `prefersHighContrast` was defined in `AccessibilityProvider` but never consumed, and no high-contrast color palette existed. Removing it entirely was cleaner than leaving a dead toggle that implied functionality that didn't work.
+ 20. **Focus management is essential for keyboard navigation** — Hash-based routing that scrolls without moving focus creates a trap for keyboard users who must Tab through all intermediate elements. Adding `tabindex="-1"` + `focus()` on the target heading after navigation brings keyboard users directly to the new section.
+ 21. **Never hardcode credentials in config files** — `drizzle.config.json` had `postgres:postgres` in plaintext. Converting to `drizzle.config.ts` with `process.env.DATABASE_URL` eliminated the security risk and aligned with the `.env.example` pattern. The config now throws a clear error message if the variable is missing.
++22. **`instanceof Error` 对 `unknown` 类型在 TS strict 模式下不可靠** — 应使用自定义类型守卫（如 `isErrorLike()`）代替。TS 5.5+ 严格模式下，`instanceof Error` 可能无法正确收窄 `unknown` 类型，导致 `Property 'message' does not exist on type '{}'` 错误。
++23. **`eslint-config-next` 已包含 `eslint-plugin-jsx-a11y`** — 不要重复导入。`eslint-config-next/core-web-vitals` 已经包含该插件。重复导入会导致 `ConfigError: Cannot redefine plugin "jsx-a11y"`。
++24. **`useEffect` 中同步调用 `setState` 会触发 linter 警告** — `useEffect(() => { setState(true); }, [])` 这样的模式会导致 React linter 报错。如果需要同步设置初始状态，应直接初始化为 `true`，或使用惰性初始化 `useState(() => true)`。
++25. **`history.pushState` 替代 `location.hash` 时需要注意事件监听** — `pushState` 不会触发 `hashchange` 事件，需要监听 `popstate` 事件来捕获后退/前进导航。这是 SPA hash 路由的正确实现方式。
++26. **为可变列表使用稳定的 `key`** — `key={index}` 在列表项顺序或内容变化时会导致 React 无法正确追踪项目。应使用稳定的唯一 ID（如 `Date.now()` 或递增计数器），并使用 `key={item.id}`。
+ 
+ ## Recommendations
+ 
+ 1. **Integrate an email service** — Replace the `console.log` in `/api/contact/route.ts` with a real email provider (Resend, SendGrid, etc.) before deploying to production.
+ 2. **Add error reporting** — Integrate Sentry or a similar service in `error.tsx` and the global error boundary.
+-3. **Consolidate `useAccessibility()` and `useReducedMotion()`** — `AccessibilityProvider` provides `prefersReducedMotion` via context, but `HeroKinetic` and `ScrollReveal` import `useReducedMotion()` directly. Either have all components consume the context hook, or remove `AccessibilityProvider` and use the standalone hook everywhere.
++3. **✅ Consolidate `useAccessibility()` and `useReducedMotion()`** — **已完成（Remediation 5）**：移除了 `AccessibilityProvider`，所有组件直接使用 `useReducedMotion()` 钩子。不再需要上下文系统。
+ 4. **Reconcile CSS variable naming for archived components** — If reintegrating any archived components, either add alias variables in `globals.css` or rewrite them to use the `--color-` prefix convention.
+ 5. **Add portrait assets** — Place webp images in `public/portraits/` if needed, or remove references from archived `data.ts`.
+ 6. **Consider re-enabling SSR** — Replace `ssr: false` with `Suspense` boundaries for better SEO while keeping interactive features client-side.
+(venv) pete@pop-os:/home/project/personal-portfolio-next
+$ git diff AGENTS.md
+diff --git a/AGENTS.md b/AGENTS.md
+index ebd8bf6..fe11454 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -9,9 +9,9 @@ This is a high-signal brief for agents working on "The Engineered Soul" portfoli
+ 
+ ## Current State
+ 
+-The project has passed four remediation phases. Build and typecheck pass cleanly. The SPA orchestrator (`PortfolioApp.tsx`) is implemented and wired into `page.tsx`. All CSS variables referenced by active components are defined in `@theme` with day-theme overrides. Hash routing is aligned with actual section IDs and includes focus management for keyboard users. Theme targeting is unified on `document.documentElement`. Site configuration is centralized in `site-config.ts`. Contact form submits to a real API endpoint with rate limiting and typed responses (`ContactApiResponse` discriminated union). All text-muted colors pass WCAG AA contrast ratios in both themes. Animation components (`HeroKinetic`, `ScrollReveal`) use `useReducedMotion` hook. All interactive widgets have proper ARIA attributes (`ThemeSwitch`: `role="switch"`+`aria-checked`, `Navigation`: `aria-current`, `Terminal`: `role="log"`+`aria-live="polite"`). Dormant code has been archived to `_archive/` directories. Drizzle config uses environment variables (no hardcoded credentials). `.env.example` is present.
++The project has passed five remediation phases (Remediation 1-4 + Code Review Fixes 2026-06-14). Build and typecheck pass cleanly. The SPA orchestrator (`PortfolioApp.tsx`) is implemented and wired into `page.tsx`. All CSS variables referenced by active components are defined in `@theme` with day-theme overrides. Hash routing uses `history.pushState` to avoid default browser scroll behavior. Theme targeting is unified on `document.documentElement`. Site configuration is centralized in `site-config.ts`. Contact form submits to a real API endpoint with rate limiting, typed responses (`ContactApiResponse` discriminated union), and request body size limits. All text-muted colors pass WCAG AA contrast ratios in both themes. Animation components (`HeroKinetic`, `ScrollReveal`) use `useReducedMotion` hook. All interactive widgets have proper ARIA attributes (`ThemeSwitch`: `role="switch"`+`aria-checked`, `Navigation`: `aria-current`, `Terminal`: `role="log"`+`aria-live="polite"`). Dormant code has been archived to `_archive/` directories. Drizzle config uses environment variables (no hardcoded credentials). `.env.example` is present.
+ 
+-**Active components** (17, wired in `PortfolioApp.tsx`): Navigation, HeroKinetic, SectionBlock, ErrorBoundary, AccessibilityProvider, BentoGrid, ProjectsSection, ProjectCard, SkillsSection, Timeline, BlogSection, Terminal, ContactSection, Footer, ThemeSwitch, ScrollReveal, ThemeScript.
++**Active components** (16, wired in `PortfolioApp.tsx`): Navigation, HeroKinetic, SectionBlock, ErrorBoundary, BentoGrid, ProjectsSection, ProjectCard, SkillsSection, Timeline, BlogSection, Terminal, ContactSection, Footer, ThemeSwitch, ScrollReveal, ThemeScript.
+ 
+ **Archived components** (15, in `src/components/_archive/`): AboutFlow, ArchiveSpread, ArchiveItemCard, BentoTile, BrandMark, ClientOnly, CodeRain, ContentBody, DitherOverlay, GrainOverlay, LayoutShell, MachineOverlay, MobileDrawer, SocialIcon, ThemeToggle.
+ 
+@@ -52,8 +52,20 @@ When no `localStorage` value exists, `ThemeScript` checks `window.matchMedia('(p
+ ### CSS Import Order (Build-Breaking)
+ `globals.css` uses `@import "tailwindcss"` as the first import. Google Fonts are loaded via `<link>` tags in `layout.tsx` `<head>`, NOT via `@import url()` in CSS. If you ever add `@import url()` for fonts back to `globals.css`, it MUST come before `@import "tailwindcss"`.
+ 
+-### `useAccessibility()` and `useReducedMotion()` Are Redundant
+-`AccessibilityProvider` provides `prefersReducedMotion` via context (simplified in Remediation 4 — removed unused `prefersHighContrast`). However, `HeroKinetic` and `ScrollReveal` import `useReducedMotion()` directly instead of consuming the context. These two systems should be consolidated — either have all components use the context hook, or remove `AccessibilityProvider` and use the standalone hook everywhere.
++### ✅ `useAccessibility()` and `useReducedMotion()` Are Consolidated (Remediation 5)
++`AccessibilityProvider` was removed in Remediation 5. All components now import `useReducedMotion()` directly from `@/hooks/useReducedMotion`. The context-based system is gone — no redundancy remains. Do NOT import `AccessibilityProvider` from `@/components/AccessibilityProvider` — it no longer exists.
++
++### `eslint-plugin-jsx-a11y` Is Already Bundled in `eslint-config-next`
++`eslint-config-next/core-web-vitals` already includes `eslint-plugin-jsx-a11y` with its recommended rules (e.g., `anchor-is-valid`, `alt-text`). Do NOT import it separately in `eslint.config.mjs` — doing so causes `ConfigError: Cannot redefine plugin "jsx-a11y"`. The plugin is activated transitively through `eslint-config-next`.
++
++### `instanceof Error` Does Not Reliably Narrow `unknown` in TS Strict
++TypeScript 5.5+ strict mode may fail to narrow `unknown` via `instanceof Error`. Use a custom type guard (e.g., `isErrorLike()`) instead. This was encountered in `error.tsx` where `error instanceof Error` produced `Property 'message' does not exist on type '{}'` despite the guard. Always prefer `isErrorLike(error) ? error.message : "..."` for `unknown` error values.
++
++### `history.pushState` Replaces `window.location.hash` for SPA Routing
++`useRouteHash` now uses `history.pushState(null, "", "#" + valid)` instead of `window.location.hash = valid`. This avoids the browser's default scroll-to-anchor behavior. Note: `pushState` does NOT fire `hashchange` events — `useRouteHash` now listens for `popstate` to capture back/forward navigation instead.
++
++### Synchronous `setState` Inside `useEffect` Is an Anti-Pattern
++`useEffect(() => { setIsMounted(true); }, [])` triggers React linter warnings ("Calling setState synchronously within an effect can trigger cascading renders"). Initialize state directly in render (e.g., `const [mounted] = useState(true)`) or use `useLayoutEffect` if post-DOM updates are needed. Never synchronously update state inside a `useEffect` body.
+ 
+ ### Missing Portrait Assets
+ Archived `data.ts` references `/portraits/*.webp` files that don't exist in `public/`. Either add the assets or remove the references.
+

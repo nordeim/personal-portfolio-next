@@ -9,9 +9,9 @@ This is a high-signal brief for agents working on "The Engineered Soul" portfoli
 
 ## Current State
 
-The project has passed four remediation phases. Build and typecheck pass cleanly. The SPA orchestrator (`PortfolioApp.tsx`) is implemented and wired into `page.tsx`. All CSS variables referenced by active components are defined in `@theme` with day-theme overrides. Hash routing is aligned with actual section IDs and includes focus management for keyboard users. Theme targeting is unified on `document.documentElement`. Site configuration is centralized in `site-config.ts`. Contact form submits to a real API endpoint with rate limiting and typed responses (`ContactApiResponse` discriminated union). All text-muted colors pass WCAG AA contrast ratios in both themes. Animation components (`HeroKinetic`, `ScrollReveal`) use `useReducedMotion` hook. All interactive widgets have proper ARIA attributes (`ThemeSwitch`: `role="switch"`+`aria-checked`, `Navigation`: `aria-current`, `Terminal`: `role="log"`+`aria-live="polite"`). Dormant code has been archived to `_archive/` directories. Drizzle config uses environment variables (no hardcoded credentials). `.env.example` is present.
+The project has passed five remediation phases (Remediation 1-4 + Code Review Fixes 2026-06-14). Build and typecheck pass cleanly. The SPA orchestrator (`PortfolioApp.tsx`) is implemented and wired into `page.tsx`. All CSS variables referenced by active components are defined in `@theme` with day-theme overrides. Hash routing uses `history.pushState` to avoid default browser scroll behavior. Theme targeting is unified on `document.documentElement`. Site configuration is centralized in `site-config.ts`. Contact form submits to a real API endpoint with rate limiting, typed responses (`ContactApiResponse` discriminated union), and request body size limits. All text-muted colors pass WCAG AA contrast ratios in both themes. Animation components (`HeroKinetic`, `ScrollReveal`) use `useReducedMotion` hook. All interactive widgets have proper ARIA attributes (`ThemeSwitch`: `role="switch"`+`aria-checked`, `Navigation`: `aria-current`, `Terminal`: `role="log"`+`aria-live="polite"`). Dormant code has been archived to `_archive/` directories. Drizzle config uses environment variables (no hardcoded credentials). `.env.example` is present.
 
-**Active components** (17, wired in `PortfolioApp.tsx`): Navigation, HeroKinetic, SectionBlock, ErrorBoundary, AccessibilityProvider, BentoGrid, ProjectsSection, ProjectCard, SkillsSection, Timeline, BlogSection, Terminal, ContactSection, Footer, ThemeSwitch, ScrollReveal, ThemeScript.
+**Active components** (16, wired in `PortfolioApp.tsx`): Navigation, HeroKinetic, SectionBlock, ErrorBoundary, BentoGrid, ProjectsSection, ProjectCard, SkillsSection, Timeline, BlogSection, Terminal, ContactSection, Footer, ThemeSwitch, ScrollReveal, ThemeScript.
 
 **Archived components** (15, in `src/components/_archive/`): AboutFlow, ArchiveSpread, ArchiveItemCard, BentoTile, BrandMark, ClientOnly, CodeRain, ContentBody, DitherOverlay, GrainOverlay, LayoutShell, MachineOverlay, MobileDrawer, SocialIcon, ThemeToggle.
 
@@ -52,8 +52,20 @@ When no `localStorage` value exists, `ThemeScript` checks `window.matchMedia('(p
 ### CSS Import Order (Build-Breaking)
 `globals.css` uses `@import "tailwindcss"` as the first import. Google Fonts are loaded via `<link>` tags in `layout.tsx` `<head>`, NOT via `@import url()` in CSS. If you ever add `@import url()` for fonts back to `globals.css`, it MUST come before `@import "tailwindcss"`.
 
-### `useAccessibility()` and `useReducedMotion()` Are Redundant
-`AccessibilityProvider` provides `prefersReducedMotion` via context (simplified in Remediation 4 — removed unused `prefersHighContrast`). However, `HeroKinetic` and `ScrollReveal` import `useReducedMotion()` directly instead of consuming the context. These two systems should be consolidated — either have all components use the context hook, or remove `AccessibilityProvider` and use the standalone hook everywhere.
+### ✅ `useAccessibility()` and `useReducedMotion()` Are Consolidated (Remediation 5)
+`AccessibilityProvider` was removed in Remediation 5. All components now import `useReducedMotion()` directly from `@/hooks/useReducedMotion`. The context-based system is gone — no redundancy remains. Do NOT import `AccessibilityProvider` from `@/components/AccessibilityProvider` — it no longer exists.
+
+### `eslint-plugin-jsx-a11y` Is Already Bundled in `eslint-config-next`
+`eslint-config-next/core-web-vitals` already includes `eslint-plugin-jsx-a11y` with its recommended rules (e.g., `anchor-is-valid`, `alt-text`). Do NOT import it separately in `eslint.config.mjs` — doing so causes `ConfigError: Cannot redefine plugin "jsx-a11y"`. The plugin is activated transitively through `eslint-config-next`.
+
+### `instanceof Error` Does Not Reliably Narrow `unknown` in TS Strict
+TypeScript 5.5+ strict mode may fail to narrow `unknown` via `instanceof Error`. Use a custom type guard (e.g., `isErrorLike()`) instead. This was encountered in `error.tsx` where `error instanceof Error` produced `Property 'message' does not exist on type '{}'` despite the guard. Always prefer `isErrorLike(error) ? error.message : "..."` for `unknown` error values.
+
+### `history.pushState` Replaces `window.location.hash` for SPA Routing
+`useRouteHash` now uses `history.pushState(null, "", "#" + valid)` instead of `window.location.hash = valid`. This avoids the browser's default scroll-to-anchor behavior. Note: `pushState` does NOT fire `hashchange` events — `useRouteHash` now listens for `popstate` to capture back/forward navigation instead.
+
+### Synchronous `setState` Inside `useEffect` Is an Anti-Pattern
+`useEffect(() => { setIsMounted(true); }, [])` triggers React linter warnings ("Calling setState synchronously within an effect can trigger cascading renders"). Initialize state directly in render (e.g., `const [mounted] = useState(true)`) or use `useLayoutEffect` if post-DOM updates are needed. Never synchronously update state inside a `useEffect` body.
 
 ### Missing Portrait Assets
 Archived `data.ts` references `/portraits/*.webp` files that don't exist in `public/`. Either add the assets or remove the references.
