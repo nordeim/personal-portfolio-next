@@ -1,6 +1,6 @@
 ---
 name: docx-conversion
-description: docx report generation and conversion. enables bidirectional conversion between Markdown and DOCX with professional-quality output. encodes all knowledge from the docx skill system (design system, common rules, cover recipes, post-check scripts, TOC handling) plus practical patterns proven in real document generation
+description: docx report generation and conversion. Enables bidirectional conversion between Markdown and DOCX. Parse a Markdown file and generate a professionally formatted .docx with cover page, TOC, styled headings, tables, and proper typography. Extract structured content from a .docx file into clean Markdown with metadata preservation
 Version: 1.0
 allowed-tools:  [Read, Write, Edit, Bash]
 ---
