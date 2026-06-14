@@ -1,6 +1,9 @@
-# docx-SKILL.md — Comprehensive DOCX Generation & Conversion Skill
-
-> **Version:** 1.0 | **Date:** 2026-06-14 | **Author:** Consolidated from Z.AI docx skill + real-world report generation experience
+---
+name: docx-conversion
+description: docx report generation and conversion. enables bidirectional conversion between Markdown and DOCX with professional-quality output. encodes all knowledge from the skill system (design system, common rules, cover recipes, post-check scripts, TOC handling) plus practical patterns proven in real document generation
+Version: 1.0
+allowed-tools:  [Read, Write, Edit, Bash]
+---
 
 ## Purpose
 
