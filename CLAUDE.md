@@ -55,7 +55,7 @@ Avant-garde digital installation porting the Nicholas Yun portfolio from a Vite 
 - **Drizzle Config**: `drizzle.config.ts` (not `.json`) reads `DATABASE_URL` from environment. Throws a clear error if the variable is missing.
 
 ### Component Classification
-**Active** (17, used by `PortfolioApp.tsx`): Navigation, HeroKinetic, SectionBlock, ErrorBoundary, AccessibilityProvider, BentoGrid, ProjectsSection, ProjectCard, SkillsSection, Timeline, BlogSection, Terminal, ContactSection, Footer, ThemeSwitch, ScrollReveal, ThemeScript.
+**Active** (15, used by `PortfolioApp.tsx`): Navigation, HeroKinetic, SectionBlock, ErrorBoundary, BentoGrid, ProjectsSection, ProjectCard, SkillsSection, Timeline, BlogSection, Terminal, ContactSection, Footer, ThemeSwitch, ScrollReveal, ThemeScript.
 
 **Archived** (15, in `src/components/_archive/`): AboutFlow, ArchiveSpread, ArchiveItemCard, BentoTile, BrandMark, ClientOnly, CodeRain, ContentBody, DitherOverlay, GrainOverlay, LayoutShell, MachineOverlay, MobileDrawer, SocialIcon, ThemeToggle.
 
@@ -142,8 +142,8 @@ Theme switching uses `data-theme="night"` / `data-theme="day"` set on `document.
 ### Rate Limiter Is In-Memory Only
 `src/lib/rate-limit.ts` uses a `Map` for storage. This does not persist across server instances or restarts. For multi-instance deployments (Vercel, Docker), replace with Redis/Upstash rate limiting.
 
-### `useAccessibility()` and `useReducedMotion()` Are Redundant
-`AccessibilityProvider` provides `prefersReducedMotion` via context (simplified in Remediation 4 — removed unused `prefersHighContrast`). However, `HeroKinetic` and `ScrollReveal` import `useReducedMotion()` directly instead of consuming the context. These two systems should be consolidated — either have all components use the context hook, or remove `AccessibilityProvider` and use the standalone hook everywhere.
+### ✅ `useAccessibility()` and `useReducedMotion()` Are Consolidated (Remediation 6)
+`AccessibilityProvider` was removed in Remediation 5. All components now import `useReducedMotion()` directly from `@/hooks/useReducedMotion`. The context-based system is gone — no redundancy remains.
 
 ### No Error Reporting
 `error.tsx` has a `console.error` placeholder for Sentry or similar. No structured error reporting exists. Integrate Sentry or a comparable service before production.
@@ -215,7 +215,7 @@ API responses from `/api/contact` use `ContactApiResponse = ContactApiSuccess | 
 - [ ] Email service integration for contact form
 - [ ] Error reporting (Sentry integration)
 - [ ] SSR for SEO
-- [ ] Consolidate `useAccessibility()` context vs. standalone `useReducedMotion()`
+- [x] Consolidate `useAccessibility()` context vs. standalone `useReducedMotion()` ✅ Completed in Remediation 6 — `AccessibilityProvider` removed, all components use `useReducedMotion()` directly
 
 ## Remediation History
 
@@ -281,3 +281,34 @@ API responses from `/api/contact` use `ContactApiResponse = ContactApiSuccess | 
 | Text-muted contrast ratios failed WCAG AA | Night: `#6b6560` → `#918983` (3.45:1 → 5.76:1); Day: `#8a8478` → `#6b6560` (3.28:1 → 5.06:1) |
 | No focus management after hash navigation | Added `requestAnimationFrame` + `tabindex="-1"` + `focus()` in `useRouteHash.setActiveSection` to move keyboard focus to section headings |
 | ARIA attributes on interactive widgets | Verified already present — `ThemeSwitch` has `role="switch"` + `aria-checked`, `Navigation` has `aria-current`, `Terminal` has `role="log"` + `aria-live="polite"` |
+
+### Remediation 5 (Code Review Fixes — 2026-06-14)
+
+| Issue | Resolution |
+|-------|-----------|
+| `error.tsx` typed `error` as `Error` instead of `unknown` | Changed to `error: unknown` with `isErrorLike()` custom type guard |
+| `not-found.tsx` was a Client Component with hardcoded `<a>` | Removed `"use client"`; replaced `<a>` with Next.js `<Link>`; replaced inline styles with CSS variables |
+| `next.config.ts` was empty / missing security headers | Added `headers()` export with CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy |
+| Rate limiter trusted `x-forwarded-for` without proxy trust | Documented proxy trust boundary; added warning log when falling back to `127.0.0.1` |
+| Hero "View Work" link bypassed hash routing | Delegated click to `onNavigate` prop from parent `PortfolioApp` |
+| Mobile menu lacked focus trap | Implemented Tab key cycling within mobile menu dialog in `Navigation.tsx` |
+| `ProjectCard` used raw `<img>` tag | Replaced with Next.js `<Image>` component with proper sizing and lazy loading |
+| `ContactSection` re-rendered on every keystroke | Removed `errors` from `handleChange` dependency array; used functional `setErrors` updates |
+| Grain overlay SVG filter caused GPU repaints | Reduced `baseFrequency` from `0.9` to `0.65` in `globals.css` |
+| Redundant `AccessibilityProvider` context | Removed from `PortfolioApp.tsx`; all components use `useReducedMotion()` directly |
+| Terminal used unstable `key={index}` for history lines | Added monotonic `id` to `TerminalLine`; use `line.id` as `key` |
+| Terminal hardcoded `8px` spacing | Replaced with `var(--spacing-quarter)` |
+| Terminal inline object creation in `executeCommand` | Extracted `newLine()` helper; refactored `executeCommand` to use it |
+| No request body size limit on contact API | Added `MAX_BODY_SIZE` (10KB) check before JSON parsing |
+| `window.location.hash` triggered browser scroll | Replaced with `history.pushState`; added `popstate` event listener in `useRouteHash` |
+| `eslint-plugin-jsx-a11y` import conflict | Documented that it's already bundled in `eslint-config-next`; removed redundant import |
+
+### Remediation 6 (Full Codebase Alignment — 2026-06-14)
+
+| Issue | Resolution |
+|-------|-----------|
+| `AccessibilityProvider.tsx` still existed after supposed removal | Deleted the file; no active imports remain |
+| ESLint errors from `setState` inside `useEffect` | Refactored `useReducedMotion.ts`, `ScrollReveal.tsx`, `HeroKinetic.tsx`, `ThemeSwitch.tsx` to initialize state directly in render |
+| ESLint error in `_archive/ClientOnly.tsx` | Added `**/_archive/**` to `globalIgnores` in `eslint.config.mjs` |
+| `Timeline.tsx` had hardcoded `8px` | Replaced with `var(--spacing-quarter)` |
+| Lessons Learned numbering was inconsistent in README.md | Renumbered all items for consistency |

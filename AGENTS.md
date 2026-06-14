@@ -9,7 +9,7 @@ This is a high-signal brief for agents working on "The Engineered Soul" portfoli
 
 ## Current State
 
-The project has passed five remediation phases (Remediation 1-4 + Code Review Fixes 2026-06-14). Build and typecheck pass cleanly. The SPA orchestrator (`PortfolioApp.tsx`) is implemented and wired into `page.tsx`. All CSS variables referenced by active components are defined in `@theme` with day-theme overrides. Hash routing uses `history.pushState` to avoid default browser scroll behavior. Theme targeting is unified on `document.documentElement`. Site configuration is centralized in `site-config.ts`. Contact form submits to a real API endpoint with rate limiting, typed responses (`ContactApiResponse` discriminated union), and request body size limits. All text-muted colors pass WCAG AA contrast ratios in both themes. Animation components (`HeroKinetic`, `ScrollReveal`) use `useReducedMotion` hook. All interactive widgets have proper ARIA attributes (`ThemeSwitch`: `role="switch"`+`aria-checked`, `Navigation`: `aria-current`, `Terminal`: `role="log"`+`aria-live="polite"`). Dormant code has been archived to `_archive/` directories. Drizzle config uses environment variables (no hardcoded credentials). `.env.example` is present.
+The project has passed six remediation phases (Remediation 1-4 + Code Review Fixes + Full Codebase Alignment 2026-06-14). Build and typecheck pass cleanly. The SPA orchestrator (`PortfolioApp.tsx`) is implemented and wired into `page.tsx`. All CSS variables referenced by active components are defined in `@theme` with day-theme overrides. Hash routing uses `history.pushState` to avoid default browser scroll behavior. Theme targeting is unified on `document.documentElement`. Site configuration is centralized in `site-config.ts`. Contact form submits to a real API endpoint with rate limiting, typed responses (`ContactApiResponse` discriminated union), and request body size limits. All text-muted colors pass WCAG AA contrast ratios in both themes. Animation components (`HeroKinetic`, `ScrollReveal`) use `useReducedMotion` hook. All interactive widgets have proper ARIA attributes (`ThemeSwitch`: `role="switch"`+`aria-checked`, `Navigation`: `aria-current`, `Terminal`: `role="log"`+`aria-live="polite"`). Dormant code has been archived to `_archive/` directories. Drizzle config uses environment variables (no hardcoded credentials). `.env.example` is present.
 
 **Active components** (16, wired in `PortfolioApp.tsx`): Navigation, HeroKinetic, SectionBlock, ErrorBoundary, BentoGrid, ProjectsSection, ProjectCard, SkillsSection, Timeline, BlogSection, Terminal, ContactSection, Footer, ThemeSwitch, ScrollReveal, ThemeScript.
 
@@ -128,17 +128,18 @@ The Night theme needs a lighter muted text (`#918983`) while the Day theme needs
 - **Never** hardcode credentials in config files — use `process.env.DATABASE_URL` or other environment variables.
 - **Never** access `ContactApiResponse.error` without checking `data.success === false` first (discriminated union narrowing).
 - **Never** trust remediation docs without validating file paths against the actual codebase structure.
+- **Never** call `setState` synchronously inside `useEffect` — React 19 strict linter flags this. Initialize state directly in render (e.g., `const [mounted] = useState(true)`) or use a lazy initializer `useState(() => true)`.
+- **Never** let `_archive/` code trigger ESLint errors — add `**/_archive/**` to `globalIgnores` in `eslint.config.mjs` if needed.
 
 ## Outstanding Issues (Priority Order)
 
 1. **Integrate email service** — Replace `console.log` in `/api/contact/route.ts` with Resend, SendGrid, or similar.
 2. **Add error reporting** — Integrate Sentry in `error.tsx` and the global error boundary.
-3. **Consolidate `useAccessibility()` and `useReducedMotion()`** — Either have all components consume the context hook from `AccessibilityProvider`, or remove the provider and use the standalone `useReducedMotion` hook everywhere. The current redundancy creates confusion about which system to use.
-4. **Reconcile CSS variable naming for archived components** — If reintegrating any, add aliases in `globals.css` or rewrite to use `--color-` prefix.
-5. **Add portrait assets** — Place webp images in `public/portraits/` if needed.
-6. **Consider re-enabling SSR** — Replace `ssr: false` with `Suspense` boundaries for SEO.
-7. **Write to analytics table** — Implement middleware to track page views or remove unused `analytics` schema.
-8. **Replace in-memory rate limiting for production** — For multi-instance deployments, use Redis/Upstash.
+3. **Reconcile CSS variable naming for archived components** — If reintegrating any, add aliases in `globals.css` or rewrite to use `--color-` prefix.
+4. **Add portrait assets** — Place webp images in `public/portraits/` if needed.
+5. **Consider re-enabling SSR** — Replace `ssr: false` with `Suspense` boundaries for SEO.
+6. **Write to analytics table** — Implement middleware to track page views or remove unused `analytics` schema.
+7. **Replace in-memory rate limiting for production** — For multi-instance deployments, use Redis/Upstash.
 
 ## Lessons Learnt
 

@@ -308,3 +308,65 @@ ESLint (npx eslint src/):    ✅ Clear (0 errors, 1 benign warning)
 Summary
 The codebase is now fully aligned with both CONSOLIDATED_REMEDIATION_PLAN.md and status_5.md. All 14 documented remediation items have been verified and are properly implemented. Seven additional issues were discovered and resolved during the validation process, bringing the codebase into a clean, lint-free, and type-safe state.
 
+# Todos
+[✓] 
+Update README.md with latest fixes, lessons learnt, and outstanding issues
+[✓] 
+Update AGENTS.md with latest gotchas, operational notes, and critical warnings
+[✓] 
+Update CLAUDE.md with latest implementation standards, gotchas, and remediation history
+[•] 
+Run final typecheck, lint, and build verification
+# Run TypeScript type check
+$ npm run typecheck 2>&1
+> personal-portfolio-next@2.0.0 typecheck
+> tsc --noEmit
+# Run ESLint check
+$ npx eslint src/ 2>&1
+/home/project/personal-portfolio-next/src/app/layout.tsx
+  98:9  warning  Custom fonts not added in `pages/_document.js` will only load for a single page. This is discouraged. See: https://nextjs.org/docs/messages/no-page-custom-font  @next/next/no-page-custom-font
+✖ 1 problem (0 errors, 1 warning)
+# Run Next.js build
+$ npm run build 2>&1 | tail -30
+> npm run typecheck && next build
+> personal-portfolio-next@2.0.0 typecheck
+> tsc --noEmit
+▲ Next.js 16.2.9 (Turbopack)
+  Creating an optimized production build ...
+✓ Compiled successfully in 5.8s
+…
+Click to expand
+# Todos
+[✓] Update README.md with latest fixes, lessons learnt, and outstanding issues
+[✓] Update AGENTS.md with latest gotchas, operational notes, and critical warnings
+[✓] Update CLAUDE.md with latest implementation standards, gotchas, and remediation history
+[✓] Run final typecheck, lint, and build verification
+I have completed the meticulous review and update of all three documentation files. Here is a summary of the changes:
+Documentation Update Summary
+1. README.md — Updated
+- Project Status: Added "Remediation 6 (Full Codebase Alignment)" row to the project status table
+- Troubleshooting: Added:
+- New build error: "ESLint error: Calling setState synchronously within an effect" with fix instructions
+- New Code Review Fixes entry for the setState ESLint fixes across 4 files
+- Known Issues: Added new item #8 about the benign @next/next/no-page-custom-font ESLint warning (loading Google Fonts via <link> in App Router)
+- Lessons Learnt: Renumbered all items consistently (1-31). Added missing English lessons (#7-26) that were previously duplicated. Added 6 new Chinese translations (#27-31)
+- Recommendations: Consolidated duplicate entry for "Consolidate useAccessibility() and useReducedMotion()" and removed the completed item
+2. AGENTS.md — Updated
+- Current State: Updated remediation count from "five" to "six" phases
+- Outstanding Issues: Removed the completed item 3 ("Consolidate useAccessibility() and useReducedMotion()") since it was completed in Remediation 6
+- Critical "Never" List: Added two new rules:
+- Never call setState synchronously inside useEffect
+- Never let _archive/ code trigger ESLint errors
+3. CLAUDE.md — Updated
+- Component Classification: Updated active component count from 17 to 15 (removed AccessibilityProvider which was archived)
+- Gotchas: Updated the useAccessibility() and useReducedMotion() section to reflect completion ("Consolidated" instead of "Redundant")
+- Visual Fidelity Checklist: Marked "Consolidate useAccessibility() context vs. standalone useReducedMotion()" as completed
+- Remediation History: Added two new sections:
+- Remediation 5 (Code Review Fixes): 16 row items covering all fixes from Remediation 5
+- Remediation 6 (Full Codebase Alignment): 5 row items covering the additional fixes discovered during final validation
+Verification Results
+TypeScript (tsc --noEmit):  ✅ Clear
+Build (next build):           ✅ Clear
+ESLint (npx eslint src/):    ✅ Clear (0 errors, 1 benign warning)
+All three documentation files are now fully aligned with the latest codebase state, including all fixes, lessons learned, outstanding issues, and recommendations.
+

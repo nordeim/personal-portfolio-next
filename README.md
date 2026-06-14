@@ -35,7 +35,7 @@ An avant-garde digital installation balancing **Tactile Brutalism** with **High-
 ## File Hierarchy
 
 - `src/app/` — Next.js entry points (`layout.tsx`, `page.tsx`, `error.tsx`, `not-found.tsx`), global design system (`globals.css`), the SPA orchestrator (`PortfolioApp.tsx`), and API routes (`/api/contact`, `/api/health`).
-- `src/components/` — 17 active brutalist UI components. 15 archived components in `src/components/_archive/` (dormant from earlier iterations, awaiting integration or removal).
+- `src/components/` — 15 active brutalist UI components. 15 archived components in `src/components/_archive/` (dormant from earlier iterations, awaiting integration or removal).
 - `src/hooks/` — Custom interaction logic: 2 active (`useRouteHash`, `useReducedMotion`), 2 archived in `src/hooks/_archive/`.
 - `src/lib/` — Static content arrays (`projects.ts`, `skills.ts`, `timeline.ts`), TypeScript interfaces (`types.ts`), centralized site config (`site-config.ts`), rate limiting utility (`rate-limit.ts`). 5 archived files in `src/lib/_archive/`.
 - `src/db/` — Drizzle schema and database configuration (optional — app runs without `DATABASE_URL`).
@@ -85,6 +85,7 @@ npm run build      # Production build (runs typecheck + next build)
 | **8: Remediation 3** | Complete | All 14 missing CSS variables defined in `@theme` with day overrides, hash routing aligned, theme target unified on `<html>`, system preference detection added, site config centralized (`site-config.ts`), contact API endpoint with rate limiting, dead code archived to `_archive/` directories |
 | **9: Remediation 4** | Complete | Scrollbar `border-radius` fixed to 0, `drizzle.config.json` converted to `.ts` with env vars, `.env.example` created, `ContactApiResponse` discriminated union added, `prefersHighContrast` removed, `useReducedMotion` hook adopted in animation components, text-muted contrast ratios fixed to WCAG AA, focus management added to `useRouteHash`, ARIA attributes verified on interactive widgets |
 | **10: Remediation 5 (Code Review Fixes)** | Complete | `error.tsx` type guard, `not-found.tsx` Server Component, `next.config.ts` security headers, `rate-limit.ts` proxy trust, `HeroKinetic.tsx` navigation delegation, `Navigation.tsx` focus trap, `ProjectCard.tsx` Next.js Image, `ContactSection.tsx` re-render fix, `globals.css` performance optimization, `PortfolioApp.tsx` sync setState removal, `Terminal.tsx` key/8px/executeCommand fixes, `route.ts` body size limit, `useRouteHash.ts` `history.pushState`, `eslint.config.mjs` a11y plugin notes |
+| **11: Remediation 6 (Full Codebase Alignment)** | Complete | `AccessibilityProvider.tsx` removed, `useReducedMotion.ts` / `ScrollReveal.tsx` / `HeroKinetic.tsx` / `ThemeSwitch.tsx` refactored to avoid `setState` in `useEffect`, `Timeline.tsx` hardcoded `8px` replaced with CSS variable, `_archive/` excluded from ESLint |
 
 ## Testing
 
@@ -110,6 +111,7 @@ npm run build      # Production build (runs typecheck + next build)
 | `Project` type missing `tags`/`github`/`live` fields | Old Vite-era shape; consolidated `Project` uses `tech`, `links.repo`, `links.live` | Update imports to use `@/lib/projects` re-export |
 | `ContactApiResponse` type not found | Type added in Remediation 4 | Import from `@/lib/types` — it is a discriminated union for API responses |
 | `drizzle.config.ts` throws on startup | `DATABASE_URL` environment variable not set | Copy `.env.example` to `.env.local` and configure your database URL |
+| ESLint error: `Calling setState synchronously within an effect` | React 19 strict linter detects `setState` inside `useEffect` | Initialize state directly in render (e.g., `useState(getInitialTheme)`) or use a lazy initializer |
 
 ### Visual Issues
 
@@ -156,6 +158,7 @@ The `drizzle.config.ts` file throws an error if `DATABASE_URL` is not set. This 
 | No request body size limit on contact API | `src/app/api/contact/route.ts` | Add `MAX_BODY_SIZE` (10KB) check before JSON parsing |
 | `window.location.hash` triggers browser scroll | `src/hooks/useRouteHash.ts` | Use `history.pushState` instead; listen for `popstate` event |
 | `eslint-plugin-jsx-a11y` conflicts with Next.js config | `eslint.config.mjs` | Plugin is already bundled in `eslint-config-next`; add explanatory comment |
+| ESLint: `Calling setState synchronously within an effect` | `useReducedMotion.ts`, `ScrollReveal.tsx`, `HeroKinetic.tsx`, `ThemeSwitch.tsx` | Refactored to initialize state directly in render instead of calling `setState` in `useEffect` |
 
 ## Known Issues
 
@@ -171,46 +174,51 @@ The `drizzle.config.ts` file throws an error if `DATABASE_URL` is not set. This 
 
 6. **Archived components use old CSS variable names** — Components in `_archive/` reference shorthand variable names (`--border-color`, `--text-primary`, etc.) that don't exist in `@theme`. Must be updated before reintegration.
 7. **In-memory rate limiting only** — `rate-limit.ts` uses a `Map` that doesn't persist across server instances or restarts. Suitable for single-instance deployments only; replace with Redis/Upstash for production multi-instance deployments.
+8. **ESLint warnings from `@next/next/no-page-custom-font`** — Loading Google Fonts via `<link>` in App Router (`layout.tsx`) triggers this Next.js lint warning. This is an intentional design choice — the alternative (`next/font`) requires significant refactoring for the dual-theme design system. The warning is benign.
 
 ## Lessons Learnt
 
-1. **Verify npm versions before pinning** — Remediation specified `@types/react-dom@^19.2.6` which didn't exist (max was 19.2.3). Always check with `npm view <pkg> dist-tags` before updating `package.json`.
-2. **CSS import order is critical** — In Tailwind v4, `@import "tailwindcss"` expands to `@layer` rules. Any `@import url()` for external fonts **must** come before it, or the CSS optimizer will reject it.
-3. **Next.js 16 removes `optimizeFonts`** — This `next.config.ts` option no longer exists. Font optimization is automatic.
-4. **`ssr: false` requires Client Components** — In Next.js 16, `next/dynamic` with `ssr: false` cannot be used in Server Components. The page must have `"use client"`.
-5. **Two design token systems create technical debt** — Archived components use shorthand CSS variable names (`--border-color`) while `@theme` uses `--color-` prefix (`--color-border`). Must reconcile before integration. Moving dormant code to `_archive/` directories prevents confusion about what's active.
-6. **Null-safe database access** — Since `DATABASE_URL` is optional, `db` can be `null`. Any API route using `db` must include a null guard.
-7. **`noUncheckedIndexedAccess` catches real bugs** — Enabling this strict TypeScript option revealed 6+ places where array index access could return `undefined`, including `commandHistory[newIndex]`, `columns[i]`, and `CHARS[index]`. Always use `?.` or `??` for index access.
-8. **`react-error-boundary` v4 changed `FallbackProps.error` type** — The `error` prop changed from `Error` to `unknown`. Custom fallback components must type it as `unknown` and use `instanceof Error` to access `.message`.
-9. **`PortfolioApp.tsx` location matters** — It lives in `src/app/`, not `src/components/`. The import in `page.tsx` must be `@/app/PortfolioApp`, not `@/components/PortfolioApp`. The App Router co-locates the orchestrator with the route.
-10. **Undefined CSS variables silently fail** — When `var(--font-display)` resolves to `unset`, there's no error or warning — the property just doesn't apply. Always audit `var()` references against `@theme` definitions after any refactoring. The solution is to define every referenced variable in `@theme` with appropriate defaults and day-theme overrides.
-11. **Centralize configuration early** — Contact info, site name, and social links were hardcoded in 4+ places (Footer, Terminal, layout.tsx, Navigation). Creating `site-config.ts` as a single source of truth eliminated drift risk and simplified future changes.
-12. **Theme target must be consistent** — Setting `data-theme` on different DOM elements (`<html>` vs `<body>`) causes CSS selectors to break. Pick one target (`<html>`) and use it everywhere — both in `ThemeScript` (initial paint) and `PortfolioApp` (runtime toggle).
-13. **Hash routing section names must match actual IDs** — When `VALID_SECTIONS` in `useRouteHash` diverges from actual section IDs in `PortfolioApp`, `aria-current` indicators and active link highlighting silently break for mismatched sections. Keep these in sync.
-14. **Rate limiting is essential for public API routes** — Without rate limiting, the contact form endpoint is vulnerable to abuse. Even a simple in-memory sliding window algorithm (as implemented in `rate-limit.ts`) provides meaningful protection for single-instance deployments.
-15. **Archiving dormant code reduces confusion** — Moving unused components, hooks, and lib files to `_archive/` directories makes it immediately clear what code is active vs. dormant, reducing the risk that developers accidentally import dead code.
-16. **Remediation docs may reference files that don't exist** — Remediation_4.md was written without access to the actual codebase and referenced ~15 files that don't exist in the project (e.g., `ParticleField.tsx`, `CustomCursor.tsx`, `DayNightToggle.tsx`, `AccessibilityMenu.tsx`, `useAccessibility.ts`, `projectsData.ts`). Always validate each remediation proposal against the actual file structure before applying changes.
-17. **Discriminated unions for API responses prevent type errors** — Adding `ContactApiResponse = ContactApiSuccess | ContactApiError` with a `success` discriminant field enables TypeScript narrowing. Code that checks `if (data.success)` automatically narrows to the correct branch, preventing access to `error` on success responses and `message` on error responses.
-18. **Contrast ratios must be verified in both themes** — The same hex value can pass WCAG AA on a dark background but fail on a light background (or vice versa). The Night theme needed a *lighter* muted text (`#918983`) while the Day theme needed a *darker* muted text (`#6b6560`). Always test both themes independently.
-19. **Remove unused features rather than leaving them half-implemented** — `prefersHighContrast` was defined in `AccessibilityProvider` but never consumed, and no high-contrast color palette existed. Removing it entirely was cleaner than leaving a dead toggle that implied functionality that didn't work.
-20. **Focus management is essential for keyboard navigation** — Hash-based routing that scrolls without moving focus creates a trap for keyboard users who must Tab through all intermediate elements. Adding `tabindex="-1"` + `focus()` on the target heading after navigation brings keyboard users directly to the new section.
-21. **Never hardcode credentials in config files** — `drizzle.config.json` had `postgres:postgres` in plaintext. Converting to `drizzle.config.ts` with `process.env.DATABASE_URL` eliminated the security risk and aligned with the `.env.example` pattern. The config now throws a clear error message if the variable is missing.
-22. **`instanceof Error` 对 `unknown` 类型在 TS strict 模式下不可靠** — 应使用自定义类型守卫（如 `isErrorLike()`）代替。TS 5.5+ 严格模式下，`instanceof Error` 可能无法正确收窄 `unknown` 类型，导致 `Property 'message' does not exist on type '{}'` 错误。
-23. **`eslint-config-next` 已包含 `eslint-plugin-jsx-a11y`** — 不要重复导入。`eslint-config-next/core-web-vitals` 已经包含该插件。重复导入会导致 `ConfigError: Cannot redefine plugin "jsx-a11y"`。
-24. **`useEffect` 中同步调用 `setState` 会触发 linter 警告** — `useEffect(() => { setState(true); }, [])` 这样的模式会导致 React linter 报错。如果需要同步设置初始状态，应直接初始化为 `true`，或使用惰性初始化 `useState(() => true)`。
-25. **`history.pushState` 替代 `location.hash` 时需要注意事件监听** — `pushState` 不会触发 `hashchange` 事件，需要监听 `popstate` 事件来捕获后退/前进导航。这是 SPA hash 路由的正确实现方式。
-26. **为可变列表使用稳定的 `key`** — `key={index}` 在列表项顺序或内容变化时会导致 React 无法正确追踪项目。应使用稳定的唯一 ID（如 `Date.now()` 或递增计数器），并使用 `key={item.id}`。
+1. **`instanceof Error` does not reliably narrow `unknown` in TS Strict** — TypeScript 5.5+ strict mode may fail to narrow `unknown` via `instanceof Error`. Use a custom type guard (e.g., `isErrorLike()`) instead. This was encountered in `error.tsx` where `error instanceof Error` produced `Property 'message' does not exist on type '{}'` despite the guard. Always prefer `isErrorLike(error) ? error.message : "..."` for `unknown` error values.
+2. **`eslint-config-next` already bundles `eslint-plugin-jsx-a11y`** — Do NOT import it separately in `eslint.config.mjs` — doing so triggers `ConfigError: Cannot redefine plugin "jsx-a11y"`. The plugin is activated transitively through `eslint-config-next`.
+3. **`useEffect` should not synchronously call `setState`** — `useEffect(() => { setState(true); }, [])` triggers React linter warnings in React 19. Initialize state directly in render (e.g., `const [mounted] = useState(true)`) or use a lazy initializer `useState(() => true)`.
+4. **`history.pushState` replaces `window.location.hash` for SPA routing** — `pushState` avoids the browser's default scroll-to-anchor behavior. Note: `pushState` does NOT fire `hashchange` events — you must listen for `popstate` to capture back/forward navigation.
+5. **Stable keys for mutable lists prevent rendering bugs** — `key={index}` causes React to lose track of items when order changes. Use stable unique IDs (e.g., `Date.now()` or a monotonic counter) and reference them with `key={item.id}`.
+6. **Verify npm versions before pinning** — Remediation specified `@types/react-dom@^19.2.6` which didn't exist (max was 19.2.3). Always check with `npm view <pkg> dist-tags` before updating `package.json`.
+7. **CSS import order is critical** — In Tailwind v4, `@import "tailwindcss"` expands to `@layer` rules. Any `@import url()` for external fonts **must** come before it, or the CSS optimizer will reject it.
+8. **Next.js 16 removes `optimizeFonts`** — This `next.config.ts` option no longer exists. Font optimization is automatic.
+9. **`ssr: false` requires Client Components** — In Next.js 16, `next/dynamic` with `ssr: false` cannot be used in Server Components. The page must have `"use client"`.
+10. **Two design token systems create technical debt** — Archived components use shorthand CSS variable names (`--border-color`) while `@theme` uses `--color-` prefix (`--color-border`). Must reconcile before integration. Moving dormant code to `_archive/` directories prevents confusion about what's active.
+11. **Null-safe database access** — Since `DATABASE_URL` is optional, `db` can be `null`. Any API route using `db` must include a null guard.
+12. **`noUncheckedIndexedAccess` catches real bugs** — Enabling this strict TypeScript option revealed 6+ places where array index access could return `undefined`, including `commandHistory[newIndex]`, `columns[i]`, and `CHARS[index]`. Always use `?.` or `??` for index access.
+13. **`react-error-boundary` v4 changed `FallbackProps.error` type** — The `error` prop changed from `Error` to `unknown`. Custom fallback components must type it as `unknown` and use `instanceof Error` to access `.message`.
+14. **`PortfolioApp.tsx` location matters** — It lives in `src/app/`, not `src/components/`. The import in `page.tsx` must be `@/app/PortfolioApp`, not `@/components/PortfolioApp`. The App Router co-locates the orchestrator with the route.
+15. **Undefined CSS variables silently fail** — When `var(--font-display)` resolves to `unset`, there's no error or warning — the property just doesn't apply. Always audit `var()` references against `@theme` definitions after any refactoring. The solution is to define every referenced variable in `@theme` with appropriate defaults and day-theme overrides.
+16. **Centralize configuration early** — Contact info, site name, and social links were hardcoded in 4+ places (Footer, Terminal, layout.tsx, Navigation). Creating `site-config.ts` as a single source of truth eliminated drift risk and simplified future changes.
+17. **Theme target must be consistent** — Setting `data-theme` on different DOM elements (`<html>` vs `<body>`) causes CSS selectors to break. Pick one target (`<html>`) and use it everywhere — both in `ThemeScript` (initial paint) and `PortfolioApp` (runtime toggle).
+18. **Hash routing section names must match actual IDs** — When `VALID_SECTIONS` in `useRouteHash` diverges from actual section IDs in `PortfolioApp`, `aria-current` indicators and active link highlighting silently break for mismatched sections. Keep these in sync.
+19. **Rate limiting is essential for public API routes** — Without rate limiting, the contact form endpoint is vulnerable to abuse. Even a simple in-memory sliding window algorithm (as implemented in `rate-limit.ts`) provides meaningful protection for single-instance deployments.
+20. **Archiving dormant code reduces confusion** — Moving unused components, hooks, and lib files to `_archive/` directories makes it immediately clear what code is active vs. dormant, reducing the risk that developers accidentally import dead code.
+21. **Remediation docs may reference files that don't exist** — Remediation_4.md was written without access to the actual codebase and referenced ~15 files that don't exist in the project (e.g., `ParticleField.tsx`, `CustomCursor.tsx`, `DayNightToggle.tsx`, `AccessibilityMenu.tsx`, `useAccessibility.ts`, `projectsData.ts`). Always validate each remediation proposal against the actual file structure before applying changes.
+22. **Discriminated unions for API responses prevent type errors** — Adding `ContactApiResponse = ContactApiSuccess | ContactApiError` with a `success` discriminant field enables TypeScript narrowing. Code that checks `if (data.success)` automatically narrows to the correct branch, preventing access to `error` on success responses and `message` on error responses.
+23. **Contrast ratios must be verified in both themes** — The same hex value can pass WCAG AA on a dark background but fail on a light background (or vice versa). The Night theme needed a *lighter* muted text (`#918983`) while the Day theme needed a *darker* muted text (`#6b6560`). Always test both themes independently.
+24. **Remove unused features rather than leaving them half-implemented** — `prefersHighContrast` was defined in `AccessibilityProvider` but never consumed, and no high-contrast color palette existed. Removing it entirely was cleaner than leaving a dead toggle that implied functionality that didn't work.
+25. **Focus management is essential for keyboard navigation** — Hash-based routing that scrolls without moving focus creates a trap for keyboard users who must Tab through all intermediate elements. Adding `tabindex="-1"` + `focus()` on the target heading after navigation brings keyboard users directly to the new section.
+26. **Never hardcode credentials in config files** — `drizzle.config.json` had `postgres:postgres` in plaintext. Converting to `drizzle.config.ts` with `process.env.DATABASE_URL` eliminated the security risk and aligned with the `.env.example` pattern. The config now throws a clear error message if the variable is missing.
+27. **`instanceof Error` 对 `unknown` 类型在 TS strict 模式下不可靠** — 应使用自定义类型守卫（如 `isErrorLike()`）代替。TS 5.5+ 严格模式下，`instanceof Error` 可能无法正确收窄 `unknown` 类型，导致 `Property 'message' does not exist on type '{}'` 错误。
+28. **`eslint-config-next` 已包含 `eslint-plugin-jsx-a11y`** — 不要重复导入。`eslint-config-next/core-web-vitals` 已经包含该插件。重复导入会导致 `ConfigError: Cannot redefine plugin "jsx-a11y"`。
+29. **`useEffect` 中同步调用 `setState` 会触发 linter 警告** — `useEffect(() => { setState(true); }, [])` 这样的模式会导致 React linter 报错。如果需要同步设置初始状态，应直接初始化为 `true`，或使用惰性初始化 `useState(() => true)`。
+30. **`history.pushState` 替代 `location.hash` 时需要注意事件监听** — `pushState` 不会触发 `hashchange` 事件，需要监听 `popstate` 事件来捕获后退/前进导航。这是 SPA hash 路由的正确实现方式。
+31. **为可变列表使用稳定的 `key`** — `key={index}` 在列表项顺序或内容变化时会导致 React 无法正确追踪项目。应使用稳定的唯一 ID（如 `Date.now()` 或递增计数器），并使用 `key={item.id}`。
 
 ## Recommendations
 
 1. **Integrate an email service** — Replace the `console.log` in `/api/contact/route.ts` with a real email provider (Resend, SendGrid, etc.) before deploying to production.
 2. **Add error reporting** — Integrate Sentry or a similar service in `error.tsx` and the global error boundary.
-3. **✅ Consolidate `useAccessibility()` and `useReducedMotion()`** — **已完成（Remediation 5）**：移除了 `AccessibilityProvider`，所有组件直接使用 `useReducedMotion()` 钩子。不再需要上下文系统。
-4. **Reconcile CSS variable naming for archived components** — If reintegrating any archived components, either add alias variables in `globals.css` or rewrite them to use the `--color-` prefix convention.
-5. **Add portrait assets** — Place webp images in `public/portraits/` if needed, or remove references from archived `data.ts`.
-6. **Consider re-enabling SSR** — Replace `ssr: false` with `Suspense` boundaries for better SEO while keeping interactive features client-side.
-7. **Write to analytics table** — Either implement middleware to track page views or remove the unused `analytics` table schema.
-8. **Replace in-memory rate limiting for production** — The current `rate-limit.ts` uses a `Map` which doesn't persist across instances. For multi-instance deployments (Vercel, Docker), replace with Redis/Upstash rate limiting.
+3. **Reconcile CSS variable naming for archived components** — If reintegrating any archived components, either add alias variables in `globals.css` or rewrite them to use the `--color-` prefix convention.
+4. **Add portrait assets** — Place webp images in `public/portraits/` if needed, or remove references from archived `data.ts`.
+5. **Consider re-enabling SSR** — Replace `ssr: false` with `Suspense` boundaries for better SEO while keeping interactive features client-side.
+6. **Write to analytics table** — Either implement middleware to track page views or remove the unused `analytics` table schema.
+7. **Replace in-memory rate limiting for production** — For multi-instance deployments, use Redis/Upstash.
 
 ## License
 
