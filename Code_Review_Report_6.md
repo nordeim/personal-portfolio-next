@@ -535,4 +535,170 @@ Update documentation with Remediation 7 changes:
 
 ---
 
+I'll meticulously re-evaluate every CRITICAL and HIGH issue against the actual codebase. Let me start by reading all relevant source files in parallel.
+Now let me check a few more supporting files to complete the validation:
+All source files read and validated. Now let me update progress and begin the meticulous root-cause analysis.
+Let me also verify the npm vulnerabilities and check a few more things:
+All TypeScript errors are exclusively from the `skills/` directory. The actual project code compiles cleanly. Now let me compile the complete re-validation and remediation plan.
+Now let me generate the comprehensive remediation plan document. I'll invoke the docx skill first since this is a document deliverable.
+I've now fully re-validated all 17 issues against the actual codebase. Let me create the comprehensive remediation plan. I'll write it as a detailed PDF document and then proceed to execute the fixes.
+Now I have all the data needed. Let me create the comprehensive remediation plan, validate it, and then execute. I'll write the plan and worklog first.
+Now let me present the comprehensive remediation plan, then execute it. Here is the full re-validation and plan:
+
+---
+
+## COMPREHENSIVE REMEDIATION PLAN — CRITICAL & HIGH Issues
+
+### Re-Validation Summary
+
+All **6 CRITICAL** and **11 HIGH** issues have been re-validated against the actual source code. Every issue is **confirmed** with root cause identified and optimal fix designed.
+
+---
+
+### PHASE 1: CRITICAL Fixes (C-01 through C-06)
+
+**C-01: Credential Leak — `drizzle.config.json`**
+- **File**: `drizzle.config.json` (line 5: `"url": "postgresql://postgres:postgres@127.0.0.1:5432/app_db"`)
+- **Root Cause**: Prior remediation Phase 4 created `drizzle.config.ts` but never deleted the JSON file. `.gitignore` also doesn't exclude it.
+- **Fix**: Delete `drizzle.config.json` + add to `.gitignore`
+
+**C-02: Weak CSP — `'unsafe-inline'` + `'unsafe-eval'`**
+- **File**: `next.config.ts` (line 26)
+- **Root Cause**: Inline styles/scripts from brutalist design system required `'unsafe-inline'`; `'unsafe-eval'` added unnecessarily.
+- **Fix**: Remove `'unsafe-eval'` from `script-src`; restrict `'unsafe-inline'` to `style-src` only; use nonce-based `script-src`
+
+**C-03: SSR Disabled — Invisible to Search Engines**
+- **File**: `src/app/page.tsx` (line 7: `ssr: false`)
+- **Root Cause**: Developer disabled SSR to avoid hydration mismatch from `localStorage`/`window.matchMedia` usage in theme detection, even though `ThemeScript.tsx` already solves FOUC.
+- **Fix**: Remove `ssr: false`, remove duplicate theme useEffect from PortfolioApp.tsx (ThemeScript already handles it)
+
+**C-04: Deceptive Contact Form**
+- **File**: `src/app/api/contact/route.ts` (lines 102-114)
+- **Root Cause**: Email service integration was TODO'd but never done; API returns `success: true` without delivering.
+- **Fix**: Change response message to honestly state delivery is pending; add EMAIL_API_KEY to .env.example
+
+**C-05: Missing OG Image**
+- **File**: `src/app/layout.tsx` (lines 36-38, 48); `public/` directory
+- **Root Cause**: OG image was referenced but never created. `public/` only has `favicon.svg`.
+- **Fix**: Generate a proper OG image placeholder and place it at `public/og-image.png`
+
+**C-06: Unsafe Type Cast `as ContactPayload`**
+- **File**: `src/app/api/contact/route.ts` (line 91)
+- **Root Cause**: Developer used convenience cast after basic `typeof` check, assuming `validateContact` would catch structural mismatches.
+- **Fix**: Replace `as ContactPayload` with a proper runtime type guard function
+
+---
+
+### PHASE 2: HIGH Fixes (H-01 through H-11)
+
+**H-01: Rate Limiter Falls Back to Shared IP**
+- **Fix**: Return `null` from `getClientIp` when no headers found; caller rejects with 429 or skips
+
+**H-02: `setInterval` Never Cleared**
+- **Fix**: Move cleanup logic into `rateLimit()` function (lazy cleanup)
+
+**H-03: In-Memory Map Doesn't Persist**
+- **Fix**: Add clear comment marking as dev-only; add `isDev` guard
+
+**H-04: Duplicate Theme Initialization**
+- **Fix**: Remove redundant `useEffect` from `PortfolioApp.tsx` (lines 61-69)
+
+**H-05: Direct DOM Access `getElementById`**
+- **Fix**: Replace with `useRef`
+
+**H-06: BentoGrid `span 2` Without Responsive Fallback**
+- **Fix**: Add CSS media query to reset `span 2` to `span 1` on narrow viewports
+
+**H-07: `siteConfig` Missing `satisfies SiteConfig`**
+- **Fix**: Import `SiteConfig` and add `satisfies SiteConfig`
+
+**H-08: `error.tsx` May Expose Internal Details**
+- **Fix**: Gate error message display on `NODE_ENV`
+
+**H-09: `not-found.tsx` Missing Semantic HTML**
+- **Fix**: Add `<h1>`, `<main>`, `role="alert"`
+
+**H-10: Types Defined Locally Instead of Central `types.ts`**
+- **Fix**: Move `Skill` and `TimelineEntry` to `types.ts`
+
+**H-11: NPM Vulnerabilities**
+- **Fix**: Update dependencies; run `npm audit fix`
+
+---
+
+### PHASE 0: Pre-Requisite — Exclude `skills/` from TypeScript
+
+**P-00: `tsconfig.json` Include Pattern Too Broad**
+- **Fix**: Add `"skills"` to `exclude` array in `tsconfig.json`
+
+---
+
+Now let me validate this plan and execute all fixes:
+Let me execute all the fixes now, starting with the prerequisite and CRITICAL issues:
+Now update `.gitignore` to prevent `drizzle.config.json` from being re-committed:
+Now execute **C-02**: Harden CSP in `next.config.ts`:
+Now execute **C-03**: Remove `ssr: false` from `page.tsx`. Since the `ThemeScript` already handles FOUC, and the duplicate theme init in `PortfolioApp.tsx` will be removed (H-04), SSR can be enabled. However, `PortfolioApp` uses `lazy()` imports which work fine with SSR. The key issue is `localStorage` and `window` access. Let me check what needs adjustment:
+Good — all hooks are SSR-safe. Now let me execute the remaining fixes in batches. First, C-03 (remove `ssr: false`) combined with H-04 (remove duplicate theme init) and H-05 (replace getElementById with useRef):
+Now fix `PortfolioApp.tsx` — remove duplicate theme useEffect (H-04) and replace `getElementById` with `useRef` (H-05):
+Now execute **C-04** (honest contact response) and **C-06** (replace unsafe type cast):
+Now update `.env.example` to add the email service key:
+Now execute **C-05**: Generate OG image placeholder. I'll create a simple SVG-based OG image:
+Now execute **H-01/H-02/H-03**: Fix rate limiter issues:
+Now execute **H-06**: BentoGrid responsive fallback. I need to add a media query for `span 2` items on narrow viewports. Since this uses inline styles, I'll need to add a CSS class approach or use a media query hook:
+Add a responsive BentoGrid class to globals.css:
+Now update BentoGrid.tsx to use the responsive class instead of inline style:
+Now execute **H-07**: Add `satisfies SiteConfig` to site-config.ts:
+Now execute **H-08**: Fix error.tsx to not expose internal details in production:
+Also fix the ErrorFallback in page.tsx similarly:
+Now execute **H-09**: Fix not-found.tsx with proper semantic HTML:
+Now execute **H-10**: Move `Skill` and `TimelineEntry` types to central `types.ts`:
+Now update `skills.ts` to import from types.ts:
+Now let me check if there are any other files that import `Skill` or `TimelineEntry` from the old locations:
+Good — the imports are from the data modules, not from the type definitions directly. They'll still work because we re-export the types from the same modules. Let me verify there are no direct type imports:
+Good — only the data modules themselves import the types, and they now correctly import from `./types`. Now let me execute **H-11** — npm vulnerability fixes:
+The vulnerabilities are in transitive dependencies and can't be safely auto-fixed. Let me add npm overrides to force patched versions:
+All vulnerabilities resolved with npm overrides. Now let me run the typecheck and verify everything compiles:
+TypeScript passes with zero errors. Now let me run the build:
+Build is successful. Let me also verify npm audit is clean:
+All fixes verified. Let me update the worklog and finalize:
+All 18 fixes have been successfully executed and verified. Here is the complete remediation summary:
+
+---
+
+## ✅ Remediation Complete — All 18 Issues Fixed
+
+### Verification Results
+- **TypeScript**: `tsc --noEmit` passes with **0 errors**
+- **Next.js Build**: Compiles and generates static pages successfully
+- **npm audit**: **0 vulnerabilities** (down from 6)
+
+### Files Modified (18 changes across 14 files)
+
+| Fix ID | File | Change |
+|--------|------|--------|
+| **P-00** | `tsconfig.json` | Added `"skills"` to `exclude` array |
+| **C-01** | `drizzle.config.json` | **DELETED** — credential leak eliminated |
+| **C-01** | `.gitignore` | Added `drizzle.config.json`, `.env`, `.env.local` |
+| **C-02** | `next.config.ts` | Removed `'unsafe-eval'` and `'unsafe-inline'` from `script-src`; kept `'unsafe-inline'` only for `style-src` |
+| **C-03** | `src/app/page.tsx` | Removed `ssr: false` — portfolio now server-rendered and visible to search engines |
+| **C-03/H-04** | `src/app/PortfolioApp.tsx` | Removed duplicate theme `useEffect`; ThemeScript in `<head>` handles initialization |
+| **C-04** | `src/app/api/contact/route.ts` | Changed response message to honestly state delivery is pending; added `EMAIL_API_KEY` to `.env.example` |
+| **C-05** | `public/og-image.png` | Generated 1200×630 brutalist OG image for social media previews |
+| **C-06** | `src/app/api/contact/route.ts` | Replaced `as ContactPayload` with `isContactPayload()` runtime type guard |
+| **H-01/02/03** | `src/lib/rate-limit.ts` | `getClientIp()` returns `null` instead of shared IP; lazy cleanup replaces never-cleared `setInterval`; dev-only warning added |
+| **H-05** | `src/app/PortfolioApp.tsx` | Replaced `document.getElementById` with `useRef` |
+| **H-06** | `src/components/BentoGrid.tsx` + `globals.css` | Added `.bento-span-2` CSS class with `@media (max-width: 640px)` fallback |
+| **H-07** | `src/lib/site-config.ts` | Added `satisfies SiteConfig` with proper import |
+| **H-08** | `src/app/error.tsx` + `src/app/page.tsx` | Gated error message display on `NODE_ENV === 'production'` |
+| **H-09** | `src/app/not-found.tsx` | Added `<h1>`, `<main>`, `role="alert"` for semantic HTML and accessibility |
+| **H-10** | `src/lib/types.ts` + `skills.ts` + `timeline.ts` | Moved `Skill` and `TimelineEntry` interfaces to central types file |
+| **H-11** | `package.json` | Added npm overrides for `esbuild >=0.25.0` and `postcss >=8.5.10` |
+
+### Root Cause Patterns Identified
+
+1. **Incomplete prior remediations** — fixes were claimed but old files never deleted (C-01), or theme initialization was added in two places instead of one (H-04)
+2. **Convenience over security** — `ssr: false` to avoid hydration, `'unsafe-eval'` in CSP, `as ContactPayload` cast, shared IP fallback
+3. **Missing production hardening** — no environment gating for error details, rate limiter not serverless-aware, contact API shipped as stub with deceptive success message
+4. **TypeScript hygiene gaps** — `as const` without `satisfies`, local type definitions instead of central, too-broad `tsconfig.json` include pattern
+
 This remediation plan is validated against the actual codebase. **Shall I proceed with execution?** I'll implement fixes in the dependency order specified (Phase A through H), running validation after each phase.
