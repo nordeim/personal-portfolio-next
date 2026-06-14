@@ -53,6 +53,22 @@ export interface AboutPillar {
   paragraphs: readonly string[];
 }
 
+export interface Skill {
+  readonly name: string;
+  readonly category: string;
+  readonly level?: "beginner" | "intermediate" | "advanced" | "expert";
+}
+
+export interface TimelineEntry {
+  readonly id: string;
+  readonly role: string;
+  readonly company: string;
+  readonly startDate: string;
+  readonly endDate?: string;
+  readonly description?: string;
+  readonly tags?: readonly string[];
+}
+
 export interface ParsedCollectionItem {
   slug: string;
   title: string;

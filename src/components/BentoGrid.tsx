@@ -73,8 +73,8 @@ export default function BentoGrid() {
           delay={prefersReducedMotion ? 0 : index * 0.1}
         >
           <article
+            className={item.span === 2 ? "bento-span-2" : undefined}
             style={{
-              gridColumn: item.span === 2 ? "span 2" : "span 1",
               padding: "var(--spacing-grid)",
               border: "2px solid var(--color-border)",
               background: "var(--color-surface)",

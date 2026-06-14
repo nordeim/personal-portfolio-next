@@ -7,6 +7,20 @@ interface ContactPayload {
   message?: string;
 }
 
+/**
+ * Runtime type guard for ContactPayload.
+ * Replaces the unsafe `as ContactPayload` cast to ensure
+ * the parsed JSON structure matches the expected shape.
+ */
+function isContactPayload(obj: unknown): obj is ContactPayload {
+  if (typeof obj !== "object" || obj === null) return false;
+  const record = obj as Record<string, unknown>;
+  if ("name" in record && typeof record.name !== "string" && record.name !== undefined) return false;
+  if ("email" in record && typeof record.email !== "string" && record.email !== undefined) return false;
+  if ("message" in record && typeof record.message !== "string" && record.message !== undefined) return false;
+  return true;
+}
+
 interface ValidationError {
   field: string;
   message: string;
@@ -88,7 +102,15 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json(errorBody, { status: 400 });
   }
 
-  const data = body as ContactPayload;
+  if (!isContactPayload(body)) {
+    const errorBody: ContactApiResponse = {
+      success: false,
+      error: "Request body must contain valid contact fields.",
+    };
+    return Response.json(errorBody, { status: 400 });
+  }
+
+  const data = body;
   const errors = validateContact(data);
 
   if (errors.length > 0) {
@@ -109,7 +131,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const successBody: ContactApiResponse = {
     success: true,
-    message: "Message received.",
+    message: "Message recorded. Email delivery is not yet configured — your message has been logged server-side.",
   };
   return Response.json(successBody, { status: 200 });
 }

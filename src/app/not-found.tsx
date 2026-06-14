@@ -2,7 +2,8 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div
+    <main
+      role="main"
       style={{
         minHeight: "100vh",
         display: "flex",
@@ -15,34 +16,38 @@ export default function NotFound() {
         padding: "2rem",
       }}
     >
-      <p
-        style={{
-          fontSize: "3rem",
-          fontWeight: 300,
-          fontFamily: "var(--font-editorial)",
-        }}
-      >
-        404
-      </p>
-      <p
-        style={{
-          fontSize: "0.875rem",
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-        }}
-      >
-        Page not found
-      </p>
-      <p
-        style={{
-          color: "var(--color-text-muted)",
-          fontSize: "0.75rem",
-          maxWidth: "40ch",
-          textAlign: "center",
-        }}
-      >
-        The page you are looking for does not exist.
-      </p>
+      <div role="alert">
+        <h1
+          style={{
+            fontSize: "3rem",
+            fontWeight: 300,
+            fontFamily: "var(--font-editorial)",
+            textAlign: "center",
+          }}
+        >
+          404
+        </h1>
+        <p
+          style={{
+            fontSize: "0.875rem",
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            textAlign: "center",
+          }}
+        >
+          Page not found
+        </p>
+        <p
+          style={{
+            color: "var(--color-text-muted)",
+            fontSize: "0.75rem",
+            maxWidth: "40ch",
+            textAlign: "center",
+          }}
+        >
+          The page you are looking for does not exist.
+        </p>
+      </div>
       <Link
         href="/"
         style={{
@@ -61,6 +66,6 @@ export default function NotFound() {
       >
         Go Home
       </Link>
-    </div>
+    </main>
   );
 }

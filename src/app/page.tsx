@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import { ErrorBoundary } from "react-error-boundary";
 
 const PortfolioApp = dynamic(() => import("@/app/PortfolioApp"), {
-  ssr: false,
   loading: () => <LoadingSkeleton />,
 });
 
@@ -38,7 +37,9 @@ function ErrorFallback({
   error: unknown;
   resetErrorBoundary: () => void;
 }) {
-  const message = error instanceof Error ? error.message : "An unknown error occurred";
+  const message = process.env.NODE_ENV === "production"
+    ? "An unexpected error occurred."
+    : error instanceof Error ? error.message : "An unknown error occurred";
   return (
     <div
       style={{

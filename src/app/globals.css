@@ -166,6 +166,19 @@ body {
   }
 }
 
+/* ── Bento Grid Responsive Span ───────────────── */
+/* On narrow viewports, span-2 items collapse to span-1
+   to prevent grid overflow when only 1 column fits. */
+.bento-span-2 {
+  grid-column: span 2;
+}
+
+@media (max-width: 640px) {
+  .bento-span-2 {
+    grid-column: span 1;
+  }
+}
+
 /* ── Selection ─────────────────────────────────── */
 ::selection {
   background: var(--color-accent-muted);

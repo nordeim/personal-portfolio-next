@@ -5,6 +5,8 @@
  * should be imported from here to prevent drift.
  */
 
+import type { SiteConfig } from "./types";
+
 export const siteConfig = {
   name: "Nicholas Yun",
   title: "Nicholas Yun — Software Engineer & Designer",
@@ -15,7 +17,7 @@ export const siteConfig = {
   linkedinUrl: "https://linkedin.com/in/nicholasyun",
   location: "New York",
   url: "https://nicholasyun.com",
-} as const;
+} as const satisfies SiteConfig;
 
 /**
  * Get all social links as an iterable array.

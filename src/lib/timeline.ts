@@ -1,12 +1,6 @@
-export interface TimelineEntry {
-  readonly id: string;
-  readonly role: string;
-  readonly company: string;
-  readonly startDate: string;
-  readonly endDate?: string;
-  readonly description?: string;
-  readonly tags?: readonly string[];
-}
+import type { TimelineEntry } from "./types";
+
+export type { TimelineEntry } from "./types";
 
 export const timeline: TimelineEntry[] = [
   {

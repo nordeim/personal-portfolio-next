@@ -25,11 +25,13 @@ export default function Error({
   }
 
   const errorMessage =
-    typeof error === "string"
-      ? error
-      : isErrorLike(error)
-        ? error.message
-        : "An unexpected error occurred. Please try again.";
+    process.env.NODE_ENV === "production"
+      ? "An unexpected error occurred. Please try again."
+      : typeof error === "string"
+        ? error
+        : isErrorLike(error)
+          ? error.message
+          : "An unexpected error occurred. Please try again.";
 
   return (
     <div

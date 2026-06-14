@@ -15,7 +15,10 @@ yes, please meticulously plan to re-evaluate and re-validate the issues, gaps an
 ---
 
 Awesome meticulous job so far. Please keep up the good work. Now, please meticulously create a tar archive of the entire (remediated) codebase, excluding the `node_modules` , `.next` and `.git` folders, so I can download and use it to refresh my GitHub repo.
-Awesome meticulous job so far. Please keep up the good work. Now, please meticulously create a new tar archive of the entire (remediated) codebase, excluding the `node_modules` , `.next` and `.git` folders, so I can download and use it to refresh my GitHub repo.
+
+---
+
+please focus on critical and high severity issues identified. meticulously re-evaluate and re-validate those issues to identify the root causes and the optimal fixes, then meticulously plan to create a comprehensive remediation plan with a detailed ToDo list to apply the validated optimal fixes. review and validate the remediation plan against the codebase again to ensure alignment before executing meticulously.
 
 ---
 

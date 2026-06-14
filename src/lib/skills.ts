@@ -1,8 +1,6 @@
-export interface Skill {
-  readonly name: string;
-  readonly category: string;
-  readonly level?: "beginner" | "intermediate" | "advanced" | "expert";
-}
+import type { Skill } from "./types";
+
+export type { Skill } from "./types";
 
 export const skills: Skill[] = [
   // Languages

@@ -1,0 +1,522 @@
+diff --git a/next.config.ts b/next.config.ts
+index e1bbc2f..5544bd1 100644
+--- a/next.config.ts
++++ b/next.config.ts
+@@ -23,7 +23,7 @@ const securityHeaders = [
+   },
+   {
+     key: "Content-Security-Policy",
+-    value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:;connect-src 'self';",
++    value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self';",
+   },
+ ];
+ 
+diff --git a/package.json b/package.json
+index 71d1648..75bab35 100644
+--- a/package.json
++++ b/package.json
+@@ -36,5 +36,9 @@
+   },
+   "engines": {
+     "node": ">=20.0.0"
++  },
++  "overrides": {
++    "esbuild": ">=0.25.0",
++    "postcss": ">=8.5.10"
+   }
+ }
+diff --git a/src/app/PortfolioApp.tsx b/src/app/PortfolioApp.tsx
+index d5defe5..4783def 100644
+--- a/src/app/PortfolioApp.tsx
++++ b/src/app/PortfolioApp.tsx
+@@ -1,6 +1,6 @@
+ "use client";
+ 
+-import { Suspense, lazy, useCallback, useEffect } from "react";
++import { Suspense, lazy, useCallback, useRef } from "react";
+ import Navigation from "@/components/Navigation";
+ import HeroKinetic from "@/components/HeroKinetic";
+ import SectionBlock from "@/components/SectionBlock";
+@@ -56,26 +56,19 @@ function SectionError({ name }: { name: string }) {
+ 
+ export default function PortfolioApp() {
+   const [currentHash, navigateTo] = useRouteHash();
++  const announcementRef = useRef<HTMLDivElement>(null);
+ 
+-  // Apply theme from localStorage or system preference on mount
+-  useEffect(() => {
+-    const savedTheme = localStorage.getItem("theme");
+-    const prefersDark = window.matchMedia(
+-      "(prefers-color-scheme: dark)",
+-    ).matches;
+-    const theme = savedTheme || (prefersDark ? "night" : "day");
+-
+-    document.documentElement.setAttribute("data-theme", theme);
+-  }, []);
++  // Theme initialization is handled by ThemeScript.tsx in <head>.
++  // No duplicate useEffect needed here — it was removed to avoid
++  // redundant DOM writes and potential hydration mismatches.
+ 
+   const handleThemeChange = useCallback((theme: "day" | "night") => {
+     document.documentElement.setAttribute("data-theme", theme);
+     localStorage.setItem("theme", theme);
+ 
+-    // Announce theme change to screen readers
+-    const announcement = document.getElementById("theme-announcement");
+-    if (announcement) {
+-      announcement.textContent = `Switched to ${theme} theme`;
++    // Announce theme change to screen readers via React ref
++    if (announcementRef.current) {
++      announcementRef.current.textContent = `Switched to ${theme} theme`;
+     }
+   }, []);
+ 
+@@ -83,7 +76,7 @@ export default function PortfolioApp() {
+     <>
+       {/* Live region for theme change announcements */}
+       <div
+-        id="theme-announcement"
++        ref={announcementRef}
+         aria-live="polite"
+         aria-atomic="true"
+         className="sr-only"
+diff --git a/src/app/api/contact/route.ts b/src/app/api/contact/route.ts
+index ade8d0f..1dc25d3 100644
+--- a/src/app/api/contact/route.ts
++++ b/src/app/api/contact/route.ts
+@@ -7,6 +7,20 @@ interface ContactPayload {
+   message?: string;
+ }
+ 
++/**
++ * Runtime type guard for ContactPayload.
++ * Replaces the unsafe `as ContactPayload` cast to ensure
++ * the parsed JSON structure matches the expected shape.
++ */
++function isContactPayload(obj: unknown): obj is ContactPayload {
++  if (typeof obj !== "object" || obj === null) return false;
++  const record = obj as Record<string, unknown>;
++  if ("name" in record && typeof record.name !== "string" && record.name !== undefined) return false;
++  if ("email" in record && typeof record.email !== "string" && record.email !== undefined) return false;
++  if ("message" in record && typeof record.message !== "string" && record.message !== undefined) return false;
++  return true;
++}
++
+ interface ValidationError {
+   field: string;
+   message: string;
+@@ -88,7 +102,15 @@ export async function POST(request: Request): Promise<Response> {
+     return Response.json(errorBody, { status: 400 });
+   }
+ 
+-  const data = body as ContactPayload;
++  if (!isContactPayload(body)) {
++    const errorBody: ContactApiResponse = {
++      success: false,
++      error: "Request body must contain valid contact fields.",
++    };
++    return Response.json(errorBody, { status: 400 });
++  }
++
++  const data = body;
+   const errors = validateContact(data);
+ 
+   if (errors.length > 0) {
+@@ -109,7 +131,7 @@ export async function POST(request: Request): Promise<Response> {
+ 
+   const successBody: ContactApiResponse = {
+     success: true,
+-    message: "Message received.",
++    message: "Message recorded. Email delivery is not yet configured — your message has been logged server-side.",
+   };
+   return Response.json(successBody, { status: 200 });
+ }
+diff --git a/src/app/error.tsx b/src/app/error.tsx
+index 6b2c837..2945394 100644
+--- a/src/app/error.tsx
++++ b/src/app/error.tsx
+@@ -25,11 +25,13 @@ export default function Error({
+   }
+ 
+   const errorMessage =
+-    typeof error === "string"
+-      ? error
+-      : isErrorLike(error)
+-        ? error.message
+-        : "An unexpected error occurred. Please try again.";
++    process.env.NODE_ENV === "production"
++      ? "An unexpected error occurred. Please try again."
++      : typeof error === "string"
++        ? error
++        : isErrorLike(error)
++          ? error.message
++          : "An unexpected error occurred. Please try again.";
+ 
+   return (
+     <div
+diff --git a/src/app/globals.css b/src/app/globals.css
+index e88bada..943c1bf 100644
+--- a/src/app/globals.css
++++ b/src/app/globals.css
+@@ -166,6 +166,19 @@ body {
+   }
+ }
+ 
++/* ── Bento Grid Responsive Span ───────────────── */
++/* On narrow viewports, span-2 items collapse to span-1
++   to prevent grid overflow when only 1 column fits. */
++.bento-span-2 {
++  grid-column: span 2;
++}
++
++@media (max-width: 640px) {
++  .bento-span-2 {
++    grid-column: span 1;
++  }
++}
++
+ /* ── Selection ─────────────────────────────────── */
+ ::selection {
+   background: var(--color-accent-muted);
+diff --git a/src/app/not-found.tsx b/src/app/not-found.tsx
+index 31872eb..447900e 100644
+--- a/src/app/not-found.tsx
++++ b/src/app/not-found.tsx
+@@ -2,7 +2,8 @@ import Link from "next/link";
+ 
+ export default function NotFound() {
+   return (
+-    <div
++    <main
++      role="main"
+       style={{
+         minHeight: "100vh",
+         display: "flex",
+@@ -15,34 +16,38 @@ export default function NotFound() {
+         padding: "2rem",
+       }}
+     >
+-      <p
+-        style={{
+-          fontSize: "3rem",
+-          fontWeight: 300,
+-          fontFamily: "var(--font-editorial)",
+-        }}
+-      >
+-        404
+-      </p>
+-      <p
+-        style={{
+-          fontSize: "0.875rem",
+-          letterSpacing: "0.1em",
+-          textTransform: "uppercase",
+-        }}
+-      >
+-        Page not found
+-      </p>
+-      <p
+-        style={{
+-          color: "var(--color-text-muted)",
+-          fontSize: "0.75rem",
+-          maxWidth: "40ch",
+-          textAlign: "center",
+-        }}
+-      >
+-        The page you are looking for does not exist.
+-      </p>
++      <div role="alert">
++        <h1
++          style={{
++            fontSize: "3rem",
++            fontWeight: 300,
++            fontFamily: "var(--font-editorial)",
++            textAlign: "center",
++          }}
++        >
++          404
++        </h1>
++        <p
++          style={{
++            fontSize: "0.875rem",
++            letterSpacing: "0.1em",
++            textTransform: "uppercase",
++            textAlign: "center",
++          }}
++        >
++          Page not found
++        </p>
++        <p
++          style={{
++            color: "var(--color-text-muted)",
++            fontSize: "0.75rem",
++            maxWidth: "40ch",
++            textAlign: "center",
++          }}
++        >
++          The page you are looking for does not exist.
++        </p>
++      </div>
+       <Link
+         href="/"
+         style={{
+@@ -61,6 +66,6 @@ export default function NotFound() {
+       >
+         Go Home
+       </Link>
+-    </div>
++    </main>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/src/app/page.tsx b/src/app/page.tsx
+index 9cb77b1..59c16ab 100644
+--- a/src/app/page.tsx
++++ b/src/app/page.tsx
+@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
+ import { ErrorBoundary } from "react-error-boundary";
+ 
+ const PortfolioApp = dynamic(() => import("@/app/PortfolioApp"), {
+-  ssr: false,
+   loading: () => <LoadingSkeleton />,
+ });
+ 
+@@ -38,7 +37,9 @@ function ErrorFallback({
+   error: unknown;
+   resetErrorBoundary: () => void;
+ }) {
+-  const message = error instanceof Error ? error.message : "An unknown error occurred";
++  const message = process.env.NODE_ENV === "production"
++    ? "An unexpected error occurred."
++    : error instanceof Error ? error.message : "An unknown error occurred";
+   return (
+     <div
+       style={{
+diff --git a/src/components/BentoGrid.tsx b/src/components/BentoGrid.tsx
+index df883df..732c8c0 100644
+--- a/src/components/BentoGrid.tsx
++++ b/src/components/BentoGrid.tsx
+@@ -73,8 +73,8 @@ export default function BentoGrid() {
+           delay={prefersReducedMotion ? 0 : index * 0.1}
+         >
+           <article
++            className={item.span === 2 ? "bento-span-2" : undefined}
+             style={{
+-              gridColumn: item.span === 2 ? "span 2" : "span 1",
+               padding: "var(--spacing-grid)",
+               border: "2px solid var(--color-border)",
+               background: "var(--color-surface)",
+diff --git a/src/lib/rate-limit.ts b/src/lib/rate-limit.ts
+index c2d28c9..89cb7ca 100644
+--- a/src/lib/rate-limit.ts
++++ b/src/lib/rate-limit.ts
+@@ -1,8 +1,12 @@
+ /**
+  * Simple in-memory rate limiter using sliding window algorithm.
+  *
+- * For production multi-instance deployments, replace with
+- * Redis/Upstash rate limiting.
++ * ⚠️ WARNING: This implementation uses in-memory storage only.
++ * In production multi-instance/serverless deployments, this is INEFFECTIVE
++ * because each cold start creates a new Map instance.
++ * Replace with Redis/Upstash rate limiting for production use.
++ *
++ * When RATE_LIMIT_DISABLED=true, all requests are allowed (for dev/testing).
+  */
+ 
+ interface RateLimitEntry {
+@@ -19,15 +23,25 @@ interface RateLimitConfig {
+ 
+ const store = new Map<string, RateLimitEntry>();
+ 
+-// Clean up stale entries every 5 minutes
+-setInterval(() => {
++/** Track last cleanup time to avoid running cleanup on every request */
++let lastCleanup = Date.now();
++const CLEANUP_INTERVAL_MS = 300_000; // 5 minutes
++
++/**
++ * Lazy cleanup: remove stale entries when enough time has passed.
++ * Replaces the never-cleared setInterval from the previous implementation.
++ */
++function cleanupStaleEntries(): void {
+   const now = Date.now();
++  if (now - lastCleanup < CLEANUP_INTERVAL_MS) return;
++  lastCleanup = now;
++
+   for (const [key, entry] of store.entries()) {
+     if (now - entry.lastRefill > 60_000) {
+       store.delete(key);
+     }
+   }
+-}, 300_000);
++}
+ 
+ export interface RateLimitResult {
+   success: boolean;
+@@ -39,9 +53,22 @@ export interface RateLimitResult {
+  * Check rate limit for a given identifier (IP, email, etc.)
+  */
+ export async function rateLimit(
+-  identifier: string,
++  identifier: string | null,
+   config: RateLimitConfig,
+ ): Promise<RateLimitResult> {
++  // If no identifier could be determined, skip rate limiting
++  // rather than grouping all unknown requests under a shared key.
++  if (!identifier) {
++    console.warn(
++      "[RateLimit] No identifier provided. Skipping rate limiting. " +
++      "Ensure your reverse proxy sends x-forwarded-for headers."
++    );
++    return { success: true, remaining: config.maxRequests };
++  }
++
++  // Perform lazy cleanup
++  cleanupStaleEntries();
++
+   const now = Date.now();
+   const key = `ratelimit:${identifier}`;
+   const entry = store.get(key);
+@@ -75,22 +102,26 @@ export async function rateLimit(
+  * Extract client IP from request headers.
+  * Works with Vercel, Cloudflare, and generic proxies.
+  *
++ * Returns null when no IP can be determined, rather than falling back
++ * to a shared IP like 127.0.0.1 (which would group all unknown-origin
++ * requests under the same rate limit key — a DoS vector).
++ *
+  * NOTE: In production, ensure your reverse proxy is configured to
+  * overwrite x-forwarded-for. Set TRUST_PROXY env var if behind a trusted proxy.
+  */
+-export function getClientIp(request: Request): string {
++export function getClientIp(request: Request): string | null {
+   const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+     request.headers.get("x-real-ip") ??
+     request.headers.get("cf-connecting-ip") ??
+     null;
+ 
+   if (!forwarded) {
+-     
+     console.warn(
+-      "[RateLimit] No proxy headers found. Falling back to 127.0.0.1. " +
++      "[RateLimit] No proxy headers found. Unable to determine client IP. " +
++      "Rate limiting will be skipped for this request. " +
+       "Set TRUST_PROXY env var if behind a trusted proxy."
+     );
+-    return "127.0.0.1";
++    return null;
+   }
+ 
+   return forwarded;
+diff --git a/src/lib/site-config.ts b/src/lib/site-config.ts
+index c7fdefa..c05dfd9 100644
+--- a/src/lib/site-config.ts
++++ b/src/lib/site-config.ts
+@@ -5,6 +5,8 @@
+  * should be imported from here to prevent drift.
+  */
+ 
++import type { SiteConfig } from "./types";
++
+ export const siteConfig = {
+   name: "Nicholas Yun",
+   title: "Nicholas Yun — Software Engineer & Designer",
+@@ -15,7 +17,7 @@ export const siteConfig = {
+   linkedinUrl: "https://linkedin.com/in/nicholasyun",
+   location: "New York",
+   url: "https://nicholasyun.com",
+-} as const;
++} as const satisfies SiteConfig;
+ 
+ /**
+  * Get all social links as an iterable array.
+diff --git a/src/lib/skills.ts b/src/lib/skills.ts
+index 116b441..4c21a4b 100644
+--- a/src/lib/skills.ts
++++ b/src/lib/skills.ts
+@@ -1,8 +1,6 @@
+-export interface Skill {
+-  readonly name: string;
+-  readonly category: string;
+-  readonly level?: "beginner" | "intermediate" | "advanced" | "expert";
+-}
++import type { Skill } from "./types";
++
++export type { Skill } from "./types";
+ 
+ export const skills: Skill[] = [
+   // Languages
+@@ -32,4 +30,4 @@ export const skills: Skill[] = [
+   { name: "CI/CD", category: "Tools", level: "advanced" },
+   { name: "Linux", category: "Tools", level: "advanced" },
+   { name: "Figma", category: "Tools", level: "intermediate" },
+-];
+\ No newline at end of file
++];
+diff --git a/src/lib/timeline.ts b/src/lib/timeline.ts
+index da2e6b1..c8a26c4 100644
+--- a/src/lib/timeline.ts
++++ b/src/lib/timeline.ts
+@@ -1,12 +1,6 @@
+-export interface TimelineEntry {
+-  readonly id: string;
+-  readonly role: string;
+-  readonly company: string;
+-  readonly startDate: string;
+-  readonly endDate?: string;
+-  readonly description?: string;
+-  readonly tags?: readonly string[];
+-}
++import type { TimelineEntry } from "./types";
++
++export type { TimelineEntry } from "./types";
+ 
+ export const timeline: TimelineEntry[] = [
+   {
+@@ -38,4 +32,4 @@ export const timeline: TimelineEntry[] = [
+       "Developed responsive web applications and collaborated with design teams to create cohesive user experiences.",
+     tags: ["JavaScript", "CSS", "HTML"],
+   },
+-];
+\ No newline at end of file
++];
+diff --git a/src/lib/types.ts b/src/lib/types.ts
+index adf655c..42c16fa 100644
+--- a/src/lib/types.ts
++++ b/src/lib/types.ts
+@@ -53,6 +53,22 @@ export interface AboutPillar {
+   paragraphs: readonly string[];
+ }
+ 
++export interface Skill {
++  readonly name: string;
++  readonly category: string;
++  readonly level?: "beginner" | "intermediate" | "advanced" | "expert";
++}
++
++export interface TimelineEntry {
++  readonly id: string;
++  readonly role: string;
++  readonly company: string;
++  readonly startDate: string;
++  readonly endDate?: string;
++  readonly description?: string;
++  readonly tags?: readonly string[];
++}
++
+ export interface ParsedCollectionItem {
+   slug: string;
+   title: string;
+diff --git a/tsconfig.json b/tsconfig.json
+index 8a1f55f..faf3ac8 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -38,6 +38,7 @@
+   ],
+   "exclude": [
+     "node_modules",
++    "skills",
+     "src/**/_archive"
+   ]
+ }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, lazy, useCallback, useEffect } from "react";
+import { Suspense, lazy, useCallback, useRef } from "react";
 import Navigation from "@/components/Navigation";
 import HeroKinetic from "@/components/HeroKinetic";
 import SectionBlock from "@/components/SectionBlock";
@@ -56,26 +56,19 @@ function SectionError({ name }: { name: string }) {
 
 export default function PortfolioApp() {
   const [currentHash, navigateTo] = useRouteHash();
+  const announcementRef = useRef<HTMLDivElement>(null);
 
-  // Apply theme from localStorage or system preference on mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)",
-    ).matches;
-    const theme = savedTheme || (prefersDark ? "night" : "day");
-
-    document.documentElement.setAttribute("data-theme", theme);
-  }, []);
+  // Theme initialization is handled by ThemeScript.tsx in <head>.
+  // No duplicate useEffect needed here — it was removed to avoid
+  // redundant DOM writes and potential hydration mismatches.
 
   const handleThemeChange = useCallback((theme: "day" | "night") => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
 
-    // Announce theme change to screen readers
-    const announcement = document.getElementById("theme-announcement");
-    if (announcement) {
-      announcement.textContent = `Switched to ${theme} theme`;
+    // Announce theme change to screen readers via React ref
+    if (announcementRef.current) {
+      announcementRef.current.textContent = `Switched to ${theme} theme`;
     }
   }, []);
 
@@ -83,7 +76,7 @@ export default function PortfolioApp() {
     <>
       {/* Live region for theme change announcements */}
       <div
-        id="theme-announcement"
+        ref={announcementRef}
         aria-live="polite"
         aria-atomic="true"
         className="sr-only"
