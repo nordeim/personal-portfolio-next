@@ -74,12 +74,24 @@ export async function rateLimit(
 /**
  * Extract client IP from request headers.
  * Works with Vercel, Cloudflare, and generic proxies.
+ *
+ * NOTE: In production, ensure your reverse proxy is configured to
+ * overwrite x-forwarded-for. Set TRUST_PROXY env var if behind a trusted proxy.
  */
 export function getClientIp(request: Request): string {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    request.headers.get("cf-connecting-ip") ||
-    "127.0.0.1"
-  );
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    request.headers.get("x-real-ip") ??
+    request.headers.get("cf-connecting-ip") ??
+    null;
+
+  if (!forwarded) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      "[RateLimit] No proxy headers found. Falling back to 127.0.0.1. " +
+      "Set TRUST_PROXY env var if behind a trusted proxy."
+    );
+    return "127.0.0.1";
+  }
+
+  return forwarded;
 }

@@ -10,14 +10,20 @@ import {
 import { siteConfig } from "@/lib/site-config";
 
 interface TerminalLine {
+  readonly id: number;
   readonly type: "input" | "output" | "error";
   readonly text: string;
 }
 
+let _id = 0;
+function newLine(type: TerminalLine["type"], text: string): TerminalLine {
+  return { id: ++_id, type, text };
+}
+
 const WELCOME_LINES: readonly TerminalLine[] = [
-  { type: "output", text: "Welcome to The Engineered Soul Terminal" },
-  { type: "output", text: 'Type "help" for available commands.' },
-  { type: "output", text: "" },
+  newLine("output", "Welcome to The Engineered Soul Terminal"),
+  newLine("output", 'Type "help" for available commands.'),
+  newLine("output", ""),
 ] as const;
 
 const COMMANDS: Record<string, () => string> = {
@@ -61,7 +67,7 @@ export default function Terminal() {
       const trimmed = raw.trim().toLowerCase();
 
       if (!trimmed) {
-        setLines((prev) => [...prev, { type: "input", text: `$ ${raw}` }]);
+        setLines((prev) => [...prev, newLine("input", `$ ${raw}`)]);
         return;
       }
 
@@ -80,19 +86,19 @@ export default function Terminal() {
         const output = handler();
         setLines((prev) => [
           ...prev,
-          { type: "input", text: `$ ${raw}` },
-          { type: "output", text: output },
-          { type: "output", text: "" },
+          newLine("input", `$ ${raw}`),
+          newLine("output", output),
+          newLine("output", ""),
         ]);
       } else {
         setLines((prev) => [
           ...prev,
-          { type: "input", text: `$ ${raw}` },
-          {
-            type: "error",
-            text: `Command not found: ${trimmed}. Type "help" for available commands.`,
-          },
-          { type: "output", text: "" },
+          newLine("input", `$ ${raw}`),
+          newLine(
+            "error",
+            `Command not found: ${trimmed}. Type "help" for available commands.`,
+          ),
+          newLine("output", ""),
         ]);
       }
 
@@ -154,7 +160,7 @@ export default function Terminal() {
   const headerStyle = {
     display: "flex",
     alignItems: "center",
-    gap: "8px",
+    gap: "var(--spacing-quarter)",
     padding: "var(--spacing-half) var(--spacing-grid)",
     borderBottom: "2px solid var(--color-border)",
     background: "var(--color-bg-elevated)",
@@ -204,9 +210,9 @@ export default function Terminal() {
           color: "var(--color-text-secondary)",
         }}
       >
-        {lines.map((line, index) => (
+        {lines.map((line) => (
           <div
-            key={index}
+            key={line.id}
             style={{
               color:
                 line.type === "error"
@@ -222,7 +228,7 @@ export default function Terminal() {
         ))}
 
         {/* Input line */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-quarter)" }}>
           <span aria-hidden="true" style={{ color: "var(--color-accent)" }}>
             $
           </span>

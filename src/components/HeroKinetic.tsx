@@ -10,7 +10,11 @@ const HEADLINE_LINES = [
 
 const SUBTITLE = "Full-Stack Developer · Designer · Engineer";
 
-export default function HeroKinetic() {
+interface HeroKineticProps {
+  onNavigate?: (hash: string) => void;
+}
+
+export default function HeroKinetic({ onNavigate }: HeroKineticProps) {
   const [isAnimated, setIsAnimated] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
   const prefersReducedMotion = useReducedMotion();
@@ -102,8 +106,8 @@ export default function HeroKinetic() {
         </p>
 
         <div style={lineDelay(HEADLINE_LINES.length + 1)}>
-          <a
-            href="#projects"
+          <button
+            onClick={() => onNavigate?.("#projects")}
             style={{
               display: "inline-block",
               fontFamily: "var(--font-mono)",
@@ -118,10 +122,11 @@ export default function HeroKinetic() {
               boxShadow: "var(--shadow-brutal)",
               borderRadius: 0,
               transition: "transform var(--transition-fast), box-shadow var(--transition-fast)",
+              cursor: "pointer",
             }}
           >
             View Work →
-          </a>
+          </button>
         </div>
       </div>
     </section>

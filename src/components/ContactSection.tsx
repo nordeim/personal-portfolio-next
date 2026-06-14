@@ -57,12 +57,15 @@ export default function ContactSection() {
     (field: keyof FormData) =>
       (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData((prev) => ({ ...prev, [field]: e.target.value }));
-        // Clear field error on change
-        if (errors[field]) {
-          setErrors((prev) => ({ ...prev, [field]: undefined }));
-        }
+        // Clear field error on change using functional update
+        setErrors((prev) => {
+          if (prev[field]) {
+            return { ...prev, [field]: undefined };
+          }
+          return prev;
+        });
       },
-    [errors],
+    [],
   );
 
   const handleSubmit = useCallback(

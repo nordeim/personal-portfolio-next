@@ -36,7 +36,19 @@ function validateContact(data: ContactPayload): ValidationError[] {
   return errors;
 }
 
+const MAX_BODY_SIZE = 10 * 1024; // 10KB
+
 export async function POST(request: Request): Promise<Response> {
+  // Reject oversized payloads before spending resources parsing them
+  const contentLength = request.headers.get("content-length");
+  if (contentLength && parseInt(contentLength, 10) > MAX_BODY_SIZE) {
+    const body: ContactApiResponse = {
+      success: false,
+      error: "Request body too large.",
+    };
+    return Response.json(body, { status: 413 });
+  }
+
   // Rate limiting: 5 requests per minute per IP
   const ip = getClientIp(request);
   const limit = await rateLimit(ip, { maxRequests: 5, windowMs: 60_000 });

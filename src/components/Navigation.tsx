@@ -71,17 +71,38 @@ export default function Navigation({
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isMobileMenuOpen]);
 
-  // Focus first element in mobile menu when opened
+  // Focus first element in mobile menu when opened + focus trap
   useEffect(() => {
     if (!isMobileMenuOpen || !mobileMenuRef.current) return;
 
-    const focusable = mobileMenuRef.current.querySelectorAll<HTMLElement>(
-      'a[href], button, [tabindex]:not([tabindex="-1"])',
+    const focusable = Array.from(
+      mobileMenuRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button, [tabindex]:not([tabindex="-1"])',
+      ),
     );
 
     if (focusable.length > 0) {
       focusable[0]?.focus();
     }
+
+    // Focus trap: cycle Tab within the mobile menu
+    const handleTabKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key !== "Tab" || focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last?.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleTabKey);
+    return () => document.removeEventListener("keydown", handleTabKey);
   }, [isMobileMenuOpen]);
 
   return (

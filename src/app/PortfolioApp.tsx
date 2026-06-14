@@ -1,11 +1,10 @@
 "use client";
 
-import { Suspense, lazy, useCallback, useEffect, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import HeroKinetic from "@/components/HeroKinetic";
 import SectionBlock from "@/components/SectionBlock";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import AccessibilityProvider from "@/components/AccessibilityProvider";
 import { useRouteHash } from "@/hooks/useRouteHash";
 
 // Dynamic imports for below-the-fold sections (code splitting)
@@ -56,17 +55,10 @@ function SectionError({ name }: { name: string }) {
 }
 
 export default function PortfolioApp() {
-  const [isMounted, setIsMounted] = useState(false);
   const [currentHash, navigateTo] = useRouteHash();
 
+  // Apply theme from localStorage or system preference on mount
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // Apply theme from localStorage on mount
-  useEffect(() => {
-    if (!isMounted) return;
-
     const savedTheme = localStorage.getItem("theme");
     const prefersDark = window.matchMedia(
       "(prefers-color-scheme: dark)",
@@ -74,7 +66,7 @@ export default function PortfolioApp() {
     const theme = savedTheme || (prefersDark ? "night" : "day");
 
     document.documentElement.setAttribute("data-theme", theme);
-  }, [isMounted]);
+  }, []);
 
   const handleThemeChange = useCallback((theme: "day" | "night") => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -87,28 +79,8 @@ export default function PortfolioApp() {
     }
   }, []);
 
-  if (!isMounted) {
-    return (
-      <main
-        id="main-content"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.875rem",
-          letterSpacing: "0.05em",
-          textTransform: "uppercase",
-        }}
-      >
-        <p>Initializing&hellip;</p>
-      </main>
-    );
-  }
-
   return (
-    <AccessibilityProvider>
+    <>
       {/* Live region for theme change announcements */}
       <div
         id="theme-announcement"
@@ -125,7 +97,7 @@ export default function PortfolioApp() {
         {/* Hero — always loaded eagerly (above the fold) */}
         <section id="hero" aria-label="Introduction">
           <ErrorBoundary fallback={<SectionError name="Hero" />}>
-            <HeroKinetic />
+            <HeroKinetic onNavigate={navigateTo} />
           </ErrorBoundary>
         </section>
 
@@ -204,6 +176,6 @@ export default function PortfolioApp() {
           <Footer />
         </Suspense>
       </footer>
-    </AccessibilityProvider>
+    </>
   );
 }

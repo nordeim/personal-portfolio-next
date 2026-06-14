@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Image from "next/image";
 import type { Project } from "@/lib/projects";
 
 interface ProjectCardProps {
@@ -33,17 +34,13 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             background: "var(--color-bg-sunken)",
           }}
         >
-          <img
+          <Image
             src={project.image}
             alt={`Screenshot of ${project.title}`}
-            loading="lazy"
-            width={400}
-            height={200}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             style={{
-              width: "100%",
-              height: "100%",
               objectFit: "cover",
-              display: "block",
             }}
           />
         </div>
