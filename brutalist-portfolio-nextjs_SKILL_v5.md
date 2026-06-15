@@ -5,9 +5,9 @@ description: "Comprehensive skill document for a Next.js 16 brutalist portfolio.
 
 # Nicholas Yun — The Engineered Soul: Complete Skill Reference (v5)
 
-> **Document Version**: 5.0
+> **Document Version**: 5.1
 > **Last Updated**: 2026-06-15
-> **Codebase Status**: Post-Remediation 7 + Documentation Alignment
+> **Codebase Status**: Post-Remediation 8 (ThemeSwitch Hydration Fix)
 > **License**: MIT
 > **Component Count**: 16 active (15 Client + 1 Server Component ThemeScript)
 
@@ -990,33 +990,82 @@ useEffect(() => {
 
 ### ThemeSwitch Component
 
+**CRITICAL: Two-Pass Render for SSR Safety (Remediation 8)**
+
+`ThemeSwitch` reads `localStorage`/`matchMedia` to determine the current theme. When SSR is enabled (after Remediation 7 removed `ssr: false`), this causes a hydration mismatch because the server cannot access these APIs. The fix uses a two-pass render:
+
 ```typescript
-// Uses role="switch" with aria-checked
-<button
-  role="switch"
-  aria-checked={isNight}
-  aria-label={`Switch to ${isNight ? "day" : "night"} theme`}
-  onClick={toggleTheme}
-  style={{
-    background: "transparent",
-    border: "2px solid var(--color-border)",
-    padding: "var(--spacing-quarter) var(--spacing-half)",
-    cursor: "pointer",
-    fontFamily: "var(--font-mono)",
-    fontSize: "0.75rem",
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
-    borderRadius: 0,
-    color: "var(--color-text-primary)",
-    lineHeight: 1,
-    minWidth: "3rem",
-    textAlign: "center" as const,
-    transition: "background var(--transition-fast), color var(--transition-fast)",
-  }}
->
-  {isNight ? "NIGHT" : "DAY"}
-</button>
+"use client";
+import { useCallback, useEffect, useState } from "react";
+
+export default function ThemeSwitch({ onThemeChange }: ThemeSwitchProps) {
+  /**
+   * Two-pass render strategy to avoid hydration mismatch:
+   *
+   * 1. SSR + first client render: always "day" (safe default)
+   * 2. After hydration (useEffect): read actual theme from
+   *    ThemeScript.tsx's data-theme attribute and re-render.
+   */
+  const [theme, setTheme] = useState<"day" | "night">("day");
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    const rafId = requestAnimationFrame(() => {
+      const attr = document.documentElement.getAttribute("data-theme");
+      if (attr === "night" || attr === "day") {
+        setTheme(attr);
+      }
+      setIsHydrated(true);
+    });
+    return () => cancelAnimationFrame(rafId);
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    setTheme((prev) => {
+      const next = prev === "day" ? "night" : "day";
+      onThemeChange(next);
+      return next;
+    });
+  }, [onThemeChange]);
+
+  const isNight = theme === "night";
+
+  return (
+    <button
+      role="switch"
+      aria-checked={isNight}
+      aria-label={`Switch to ${isNight ? "day" : "night"} theme`}
+      onClick={toggleTheme}
+      aria-disabled={!isHydrated}
+      style={{
+        background: "transparent",
+        border: "2px solid var(--color-border)",
+        padding: "var(--spacing-quarter) var(--spacing-half)",
+        cursor: "pointer",
+        fontFamily: "var(--font-mono)",
+        fontSize: "0.75rem",
+        letterSpacing: "0.1em",
+        textTransform: "uppercase",
+        borderRadius: 0,
+        color: "var(--color-text-primary)",
+        lineHeight: 1,
+        minWidth: "3rem",
+        textAlign: "center" as const,
+        transition: "background var(--transition-fast), color var(--transition-fast)",
+        opacity: isHydrated ? 1 : 0.6, // Visual cue for pre-hydration state
+      }}
+    >
+      {isNight ? "NIGHT" : "DAY"}
+    </button>
+  );
+}
 ```
+
+**Key patterns:**
+- `useState("day")` — SSR-safe default that matches the server render
+- `useEffect` + `requestAnimationFrame` — defers state update to next paint, avoiding React 19 `setState-in-effect` ESLint error
+- Reads from DOM attribute (set by `ThemeScript.tsx`) instead of `localStorage`/`matchMedia` — ensures server/client agreement
+- `aria-disabled` + opacity — visual cue that the component is in pre-hydration state
 
 ### ContactSection — Form Validation Pattern
 
