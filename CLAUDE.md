@@ -27,7 +27,7 @@ Avant-garde digital installation porting the Nicholas Yun portfolio from a Vite 
 
 ### Next.js 16 Specific
 - **App Router**: Use `app/` directory for routes and layouts.
-- **Server Components**: Default to Server Components; use `'use client'` only for interactivity. Exception: `page.tsx` is `"use client"` because it uses `next/dynamic` with `ssr: false`.
+- **Server Components**: Default to Server Components; use `'use client'` only for interactivity. `page.tsx` remains `"use client"` because it uses `next/dynamic`, but SSR is now enabled (no `ssr: false` — removed in Remediation 7).
 - **Metadata API**: Use `generateMetadata` and `export const metadata` in `layout.tsx`.
 - **Font Loading**: Google Fonts loaded via `<link>` tags in `layout.tsx` `<head>` (preconnect + stylesheet). The `@import url()` approach in `globals.css` also works but MUST come before `@import "tailwindcss"`.
 - **`optimizeFonts`**: Removed in Next.js 16 — do NOT add to `next.config.ts`.
@@ -45,7 +45,7 @@ Avant-garde digital installation porting the Nicholas Yun portfolio from a Vite 
 
 ### Architecture & Routing
 - **Client-Side Orchestrator**: Most portfolio logic runs in `src/app/PortfolioApp.tsx` (Client Component with `"use client"`). Note: this file is in `src/app/`, NOT `src/components/`.
-- **Entry Point**: `src/app/page.tsx` is a Client Component that dynamically imports `PortfolioApp` from `@/app/PortfolioApp` with `ssr: false`. Uses `react-error-boundary` (not the custom `ErrorBoundary` component).
+- **Entry Point**: `src/app/page.tsx` is a Client Component that dynamically imports `PortfolioApp` from `@/app/PortfolioApp`. SSR is enabled (Remediation 7 removed `ssr: false`). Uses `react-error-boundary` (not the custom `ErrorBoundary` component).
 - **Hash Routing**: Preserved via `useRouteHash` hook. `VALID_SECTIONS` is aligned with actual section IDs: `["hero","about","projects","skills","experience","blog","terminal","contact"]`. Focus management moves keyboard focus to section headings after navigation.
 - **Site Configuration**: Centralized in `src/lib/site-config.ts` — name, email, social links, URL. All components that need this data import from here.
 - **Static Content**: Active data comes from `src/lib/projects.ts`, `src/lib/skills.ts`, `src/lib/timeline.ts`. The file `src/lib/_archive/data.ts` is **archived dead code** (never imported by active components).
@@ -55,7 +55,7 @@ Avant-garde digital installation porting the Nicholas Yun portfolio from a Vite 
 - **Drizzle Config**: `drizzle.config.ts` (not `.json`) reads `DATABASE_URL` from environment. Throws a clear error if the variable is missing.
 
 ### Component Classification
-**Active** (15, used by `PortfolioApp.tsx`): Navigation, HeroKinetic, SectionBlock, ErrorBoundary, BentoGrid, ProjectsSection, ProjectCard, SkillsSection, Timeline, BlogSection, Terminal, ContactSection, Footer, ThemeSwitch, ScrollReveal, ThemeScript.
+**Active** (16, used by `PortfolioApp.tsx` and `layout.tsx`): Navigation, HeroKinetic, SectionBlock, ErrorBoundary, BentoGrid, ProjectsSection, ProjectCard, SkillsSection, Timeline, BlogSection, Terminal, ContactSection, Footer, ThemeSwitch, ScrollReveal, ThemeScript (Server Component, used in `layout.tsx`).
 
 **Archived** (15, in `src/components/_archive/`): AboutFlow, ArchiveSpread, ArchiveItemCard, BentoTile, BrandMark, ClientOnly, CodeRain, ContentBody, DitherOverlay, GrainOverlay, LayoutShell, MachineOverlay, MobileDrawer, SocialIcon, ThemeToggle.
 
@@ -63,8 +63,10 @@ Avant-garde digital installation porting the Nicholas Yun portfolio from a Vite 
 
 ### Type System
 - **`Project` type consolidated** — Single canonical definition in `src/lib/types.ts`, re-exported from `src/lib/projects.ts`. Fields: `id`, `title`, `description`, `role`, `period`, `category`, `tech` (readonly string[]), `links: ProjectLink` (with `live?` and `repo?`), `image?`, `featured?`.
-- **`SiteConfig` interface** — Defined in `types.ts`, implemented as `const` in `site-config.ts`. Single source of truth for name, email, URLs.
+- **`SiteConfig` interface** — Defined in `types.ts`, implemented as `const ... satisfies SiteConfig` in `site-config.ts` (Remediation 7 added `satisfies` for compile-time validation). Single source of truth for name, email, URLs.
+- **`Skill` and `TimelineEntry` interfaces** — Defined in `types.ts`, re-exported from `skills.ts` and `timeline.ts`. Centralized in Remediation 7 to prevent type drift.
 - **`ContactApiResponse` discriminated union** — Added in Remediation 4. `ContactApiSuccess | ContactApiError` with `success` discriminant. Used by `/api/contact` and `ContactSection`.
+- **Runtime type guard `isContactPayload()`** — Added in Remediation 7. Replaces the unsafe `as ContactPayload` cast in the contact API route. Validates field types before processing.
 - **Archived types in `types.ts`**: `AboutPillar`, `ParsedCollectionItem`, `Collection`, `ParsedPortfolioItem`, `MachineOverlayData`, `SocialIconVariant` — only imported by archived components.
 - **`noUncheckedIndexedAccess: true`** — Array index access returns `T | undefined`. Always use `?.` or `??`.
 
@@ -93,6 +95,7 @@ Avant-garde digital installation porting the Nicholas Yun portfolio from a Vite 
 |----------|---------|----------|
 | `DATABASE_URL` | PostgreSQL connection string | No (app runs without DB; Drizzle Kit requires it) |
 | `NEXT_PUBLIC_SITE_URL` | Site URL for `metadataBase` in `layout.tsx` | No (defaults to `https://nicholasyun.com`) |
+| `EMAIL_API_KEY` | API key for email delivery service (Resend, SendGrid, etc.) | No (without it, contact form only logs server-side) |
 
 ## Testing Strategy
 
@@ -118,29 +121,29 @@ Archived components reference these classes. `@theme` has corresponding `--font-
 - `font-editorial`, `font-utility`, `font-body` — mapped from `--font-editorial`, `--font-utility`, `--font-body`
 - `z-grain`, `z-machine`, `z-mobile-backdrop`, `z-mobile-drawer` — mapped from `--z-index-grain`, etc.
 
-### `page.tsx` Is a Client Component
-`src/app/page.tsx` has `"use client"` because it uses `next/dynamic` with `ssr: false`. This means the entire page is client-rendered — no SSR. Metadata from `layout.tsx` (Server Component) still works. If you re-enable SSR, remove `"use client"` from `page.tsx` and use `Suspense` boundaries instead.
+### `page.tsx` Is a Client Component (SSR Enabled)
+`src/app/page.tsx` has `"use client"` because it uses `next/dynamic`. SSR is now enabled — `ssr: false` was removed in Remediation 7. The portfolio is server-rendered and visible to search engines. Theme initialization is handled by `ThemeScript` in `<head>` (blocking script), so there's no FOUC or hydration mismatch from `localStorage` access.
 
 ### `PortfolioApp.tsx` Location
 `PortfolioApp.tsx` lives in `src/app/`, NOT `src/components/`. The import in `page.tsx` must be `@/app/PortfolioApp`. Do NOT move it — the App Router co-locates the orchestrator with the route.
 
-### `react-error-boundary` v4 Type Change
-`FallbackProps.error` is typed as `unknown`, not `Error`. Custom fallback components must use `error: unknown` and guard with `instanceof Error` to access `.message`.
+### `react-error-boundary` v6+ Type Change (originated in v4)
+`FallbackProps.error` is typed as `unknown`, not `Error`. This breaking change was introduced in v4 and persists through v6 (current installed version). Custom fallback components must use `error: unknown` and guard with `instanceof Error` to access `.message`.
 
 ### `noUncheckedIndexedAccess: true`
 Array index access returns `T | undefined`. Always use `?.` or `??`. This caught 6+ real bugs during Remediation 2 (e.g., `commandHistory[newIndex]`, `columns[i]`, `CHARS[index]`, `focusable[0]`).
 
-### Theme System: `data-theme` Attribute, NOT Classes
-Theme switching uses `data-theme="night"` / `data-theme="day"` set on `document.documentElement` (`<html>`). CSS selectors target `[data-theme="day"]`. Do NOT use class-based theme switching (`theme-night`, `theme-day`). Both `ThemeScript` (initial paint) and `PortfolioApp` (runtime toggle) target `<html>` consistently.
+### Theme System: Single Initialization Point
+Theme initialization happens in `ThemeScript` (inline `<script>` in `layout.tsx` `<head>`), which runs before React hydration. `PortfolioApp.tsx` no longer has a duplicate theme `useEffect` (removed in Remediation 7). The `handleThemeChange` callback in `PortfolioApp` handles runtime toggles and uses `useRef` (not `document.getElementById`) for screen reader announcements. Both `ThemeScript` and `PortfolioApp` target `document.documentElement`. CSS selectors target `[data-theme="day"]`. Do NOT use class-based theme switching (`theme-night`, `theme-day`).
 
 ### Database Is Optional
 `src/db/index.ts` exports `db` which can be `null` if `DATABASE_URL` is not set. Any API route using `db` must include a null guard. The health endpoint (`/api/health`) returns 503 when DB is unavailable.
 
-### Contact API Endpoint Logs to Console
-`/api/contact` validates input, rate-limits requests, but only `console.log`s submissions. Must integrate an email service (Resend, SendGrid, etc.) before production.
+### Contact API Endpoint Logs to Console (Honest Response)
+`/api/contact` validates input, rate-limits requests (5 req/min per IP), but only `console.log`s submissions. The response message honestly states that email delivery is not yet configured. Must integrate an email service (Resend, SendGrid, etc.) before production. Set `EMAIL_API_KEY` in `.env.local` when integrating.
 
-### Rate Limiter Is In-Memory Only
-`src/lib/rate-limit.ts` uses a `Map` for storage. This does not persist across server instances or restarts. For multi-instance deployments (Vercel, Docker), replace with Redis/Upstash rate limiting.
+### Rate Limiter Is In-Memory Only (Dev Warning)
+`src/lib/rate-limit.ts` uses a `Map` for storage. Tokens don't persist across server instances or restarts. The cleanup logic uses lazy evaluation (triggered by actual requests) instead of a never-cleared `setInterval`. When no client IP can be determined, rate limiting is skipped rather than grouping all unknown requests under a shared `127.0.0.1` key. For multi-instance deployments (Vercel, Docker), replace with Redis/Upstash rate limiting.
 
 ### ✅ `useAccessibility()` and `useReducedMotion()` Are Consolidated (Remediation 6)
 `AccessibilityProvider` was removed in Remediation 5. All components now import `useReducedMotion()` directly from `@/hooks/useReducedMotion`. The context-based system is gone — no redundancy remains.
@@ -171,7 +174,7 @@ Remediation_4.md was written without access to the actual codebase and reference
 
 ## Lessons Learnt
 
-See **README.md** § Lessons Learnt for the full annotated list (21 lessons across 4 remediation phases). Key takeaways:
+See **README.md** § Lessons Learnt for the full annotated list (46 lessons across 7 remediation phases). Key takeaways:
 
 - Always validate remediation docs against the actual file structure before applying.
 - Discriminated unions for API responses prevent type errors and enable safe narrowing.
@@ -179,6 +182,14 @@ See **README.md** § Lessons Learnt for the full annotated list (21 lessons acro
 - Remove half-implemented features entirely rather than leaving dead toggles.
 - Focus management is essential for keyboard navigation with hash-based routing.
 - Never hardcode credentials — use environment variables and create `.env.example`.
+- Always update ALL agent instruction files (CLAUDE.md, AGENTS.md, GEMINI.md) in the same pass — GEMINI.md fell behind through 7 remediations.
+- Keep license declarations consistent across project files (MIT per `package.json`).
+- Count actual files when documenting component totals — ThemeScript is a Server Component easily missed.
+- Prior remediation "fixes" may be incomplete — always verify old files were deleted after conversion.
+- `ssr: false` is a sledgehammer; use `<head>` scripts for initialization instead.
+- `as` type casts bypass TypeScript's safety net — use runtime type guards.
+- Falling back to a shared IP in rate limiting is a DoS vector — return `null` instead.
+- Error messages must be gated on `NODE_ENV` to prevent information leakage in production.
 
 ### `ContactApiResponse` Is a Discriminated Union
 API responses from `/api/contact` use `ContactApiResponse = ContactApiSuccess | ContactApiError`. TypeScript narrows the type automatically when you check `data.success`. Do NOT access `data.error` without first checking `data.success === false`, and do NOT access `data.message` without checking `data.success === true`.
@@ -192,15 +203,15 @@ API responses from `/api/contact` use `ContactApiResponse = ContactApiSuccess | 
 - [x] Error boundaries per section
 - [x] Consolidated `Project` type with `noUncheckedIndexedAccess`
 - [x] Security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy)
-- [x] OG/Twitter metadata + JSON-LD structured data
+- [x] OG/Twitter metadata + JSON-LD structured data + OG image (`public/og-image.png`)
 - [x] Centralized site config (`site-config.ts`)
-- [x] Contact API with server-side validation + rate limiting
+- [x] Contact API with server-side validation + rate limiting + honest response messages + runtime type guard
 - [x] All CSS variables defined in `@theme` with day overrides
 - [x] Hash routing aligned with actual section IDs
 - [x] Theme target unified on `<html>`
 - [x] Dead code archived to `_archive/` directories
 - [x] Scrollbar `border-radius: 0` (brutalist consistency)
-- [x] `drizzle.config.ts` uses env vars (no hardcoded credentials)
+- [x] `drizzle.config.ts` uses env vars (no hardcoded credentials); `drizzle.config.json` DELETED and in `.gitignore`
 - [x] `.env.example` created with all required/optional variables documented
 - [x] Text-muted contrast ratios pass WCAG AA in both themes
 - [x] Focus management on hash navigation for keyboard users
@@ -214,8 +225,17 @@ API responses from `/api/contact` use `ContactApiResponse = ContactApiSuccess | 
 - [ ] Portrait assets in `/public/portraits/`
 - [ ] Email service integration for contact form
 - [ ] Error reporting (Sentry integration)
-- [ ] SSR for SEO
-- [x] Consolidate `useAccessibility()` context vs. standalone `useReducedMotion()` ✅ Completed in Remediation 6 — `AccessibilityProvider` removed, all components use `useReducedMotion()` directly
+- [ ] SSR for SEO ✅ Completed in Remediation 7
+- [ ] Update/remove `GEMINI.md` (severely outdated — references `Inter`, `--bg-primary`, `theme-night`, `src/lib/data.ts`, `Next.js 16.2.6`)
+- [ ] Remove `skills-backup.tar.gz` from repo (40MB, should not be version-controlled)
+- [x] Consolidate `useAccessibility()` context vs. standalone `useReducedMotion()` ✅ Completed in Remediation 6
+- [x] SSR for SEO ✅ Completed in Remediation 7 — `ssr: false` removed, `ThemeScript` handles initialization, duplicate theme `useEffect` removed
+- [x] CSP hardened ✅ Completed in Remediation 7 — `'unsafe-eval'` removed from `script-src`
+- [x] Error messages gated on `NODE_ENV` ✅ Completed in Remediation 7
+- [x] `siteConfig` satisfies `SiteConfig` ✅ Completed in Remediation 7
+- [x] BentoGrid responsive fallback ✅ Completed in Remediation 7
+- [x] Type definitions centralized to `types.ts` ✅ Completed in Remediation 7
+- [x] npm vulnerabilities resolved ✅ Completed in Remediation 7 (0 vulnerabilities via overrides)
 
 ## Remediation History
 
@@ -312,3 +332,38 @@ API responses from `/api/contact` use `ContactApiResponse = ContactApiSuccess | 
 | ESLint error in `_archive/ClientOnly.tsx` | Added `**/_archive/**` to `globalIgnores` in `eslint.config.mjs` |
 | `Timeline.tsx` had hardcoded `8px` | Replaced with `var(--spacing-quarter)` |
 | Lessons Learned numbering was inconsistent in README.md | Renumbered all items for consistency |
+
+### Remediation 7 (CRITICAL + HIGH Security & Quality — 2026-06-14)
+
+| Issue | Resolution |
+|-------|-----------|
+| `drizzle.config.json` still existed with hardcoded credentials | **DELETED** the file; added `drizzle.config.json`, `.env`, `.env.local` to `.gitignore` |
+| CSP had `'unsafe-inline'` and `'unsafe-eval'` in `script-src` | Removed `'unsafe-eval'` from `script-src`; restricted `'unsafe-inline'` to `style-src` only |
+| `ssr: false` made portfolio invisible to search engines | Removed `ssr: false` from `page.tsx`; portfolio is now server-rendered |
+| Contact API returned `success: true` without sending email | Changed response message to honestly state delivery is pending; added `EMAIL_API_KEY` to `.env.example` |
+| Missing OG image at `/og-image.png` | Generated 1200x630 brutalist OG image at `public/og-image.png` |
+| `as ContactPayload` cast bypassed runtime validation | Replaced with `isContactPayload()` runtime type guard function |
+| Rate limiter fell back to shared `127.0.0.1` IP | `getClientIp()` now returns `null`; caller skips rate limiting when IP unknown |
+| `setInterval` for cleanup never cleared | Replaced with lazy cleanup triggered by actual requests |
+| In-memory rate limiter undocumented as dev-only | Added WARNING comments; documented multi-instance limitation |
+| Duplicate theme `useEffect` in `PortfolioApp.tsx` | Removed — `ThemeScript` in `<head>` is the single initialization point |
+| `document.getElementById` for theme announcements | Replaced with `useRef<HTMLDivElement>` |
+| `grid-column: span 2` without responsive fallback | Added `.bento-span-2` CSS class with `@media (max-width: 640px)` fallback |
+| `siteConfig` lacked `satisfies SiteConfig` | Added `satisfies SiteConfig` with import from `types.ts` |
+| `error.tsx` exposed internal error details in production | Gated `errorMessage` on `process.env.NODE_ENV === 'production'` |
+| `not-found.tsx` missing `<h1>`, `<main>`, `role="alert"` | Added semantic HTML landmarks for accessibility |
+| `Skill` and `TimelineEntry` types defined locally | Moved to central `types.ts` with re-exports from data modules |
+| 6 npm vulnerabilities (esbuild RCE, PostCSS XSS) | Added npm `overrides` for `esbuild >=0.25.0` and `postcss >=8.5.10` — 0 vulnerabilities |
+| `skills/` directory caused 40+ TypeScript errors | Added `"skills"` to `tsconfig.json` `exclude` array |
+
+### Documentation Alignment (2026-06-15)
+
+| Issue | Resolution |
+|-------|-----------|
+| Component count listed as 15 instead of 16 | Corrected to 16 (ThemeScript was a Server Component not counted) |
+| Lessons 27-28 in README.md contained Chinese text | Translated to English for consistency |
+| README.md license said "Proprietary" but `package.json` said "MIT" | Aligned to MIT |
+| `react-error-boundary` type change docs referenced "v4" but installed version is v6 | Updated to "v6+ (originated in v4)" |
+| `GEMINI.md` severely outdated (7 remediations behind) | Updated to match current codebase state |
+| `skills-backup.tar.gz` (40MB) in repo root undocumented | Added to outstanding issues and recommendations |
+

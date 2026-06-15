@@ -35,12 +35,12 @@ An avant-garde digital installation balancing **Tactile Brutalism** with **High-
 ## File Hierarchy
 
 - `src/app/` — Next.js entry points (`layout.tsx`, `page.tsx`, `error.tsx`, `not-found.tsx`), global design system (`globals.css`), the SPA orchestrator (`PortfolioApp.tsx`), and API routes (`/api/contact`, `/api/health`).
-- `src/components/` — 15 active brutalist UI components. 15 archived components in `src/components/_archive/` (dormant from earlier iterations, awaiting integration or removal).
+- `src/components/` — 16 active brutalist UI components (including `ThemeScript`, a Server Component). 15 archived components in `src/components/_archive/` (dormant from earlier iterations, awaiting integration or removal).
 - `src/hooks/` — Custom interaction logic: 2 active (`useRouteHash`, `useReducedMotion`), 2 archived in `src/hooks/_archive/`.
 - `src/lib/` — Static content arrays (`projects.ts`, `skills.ts`, `timeline.ts`), TypeScript interfaces (`types.ts`), centralized site config (`site-config.ts`), rate limiting utility (`rate-limit.ts`). 5 archived files in `src/lib/_archive/`.
 - `src/db/` — Drizzle schema and database configuration (optional — app runs without `DATABASE_URL`).
 - `drizzle.config.ts` — Drizzle Kit configuration, reads `DATABASE_URL` from environment (converted from hardcoded JSON in Remediation 4).
-- `public/` — Static assets (favicon only; portrait assets pending).
+- `public/` — Static assets: `favicon.svg` and `og-image.png` (1200×630 brutalist OG image for social previews; portrait assets pending).
 
 ## Quick Start
 
@@ -76,7 +76,7 @@ npm run build      # Production build (runs typecheck + next build)
 | :--- | :--- | :--- |
 | **0: Design System** | Complete | `globals.css` with `@theme` tokens, day/night theme overrides, keyframes |
 | **1: Core Logic** | Complete | Hooks (`useRouteHash`, `useReducedMotion`) |
-| **2: Components** | Complete | 17 active + 14 archived components |
+| **2: Components** | Complete | 16 active + 15 archived components |
 | **3: Data Layer** | Complete | Static content arrays, consolidated `Project` type, Drizzle schema |
 | **4: Orchestration** | Complete | `PortfolioApp.tsx` with ErrorBoundary + Suspense wrapping per section |
 | **5: Entry Point** | Complete | `page.tsx` with client-side dynamic import + `react-error-boundary` |
@@ -86,6 +86,8 @@ npm run build      # Production build (runs typecheck + next build)
 | **9: Remediation 4** | Complete | Scrollbar `border-radius` fixed to 0, `drizzle.config.json` converted to `.ts` with env vars, `.env.example` created, `ContactApiResponse` discriminated union added, `prefersHighContrast` removed, `useReducedMotion` hook adopted in animation components, text-muted contrast ratios fixed to WCAG AA, focus management added to `useRouteHash`, ARIA attributes verified on interactive widgets |
 | **10: Remediation 5 (Code Review Fixes)** | Complete | `error.tsx` type guard, `not-found.tsx` Server Component, `next.config.ts` security headers, `rate-limit.ts` proxy trust, `HeroKinetic.tsx` navigation delegation, `Navigation.tsx` focus trap, `ProjectCard.tsx` Next.js Image, `ContactSection.tsx` re-render fix, `globals.css` performance optimization, `PortfolioApp.tsx` sync setState removal, `Terminal.tsx` key/8px/executeCommand fixes, `route.ts` body size limit, `useRouteHash.ts` `history.pushState`, `eslint.config.mjs` a11y plugin notes |
 | **11: Remediation 6 (Full Codebase Alignment)** | Complete | `AccessibilityProvider.tsx` removed, `useReducedMotion.ts` / `ScrollReveal.tsx` / `HeroKinetic.tsx` / `ThemeSwitch.tsx` refactored to avoid `setState` in `useEffect`, `Timeline.tsx` hardcoded `8px` replaced with CSS variable, `_archive/` excluded from ESLint |
+| **12: Remediation 7 (CRITICAL + HIGH Security & Quality)** | Complete | 18 issues fixed: `drizzle.config.json` deleted (credential leak), `ssr: false` removed (SEO now works), CSP hardened (`unsafe-eval` removed), contact API response made honest, OG image generated, `as ContactPayload` replaced with type guard, rate limiter returns `null` IP instead of shared fallback, lazy cleanup replaces never-cleared `setInterval`, duplicate theme init removed, `getElementById` replaced with `useRef`, BentoGrid responsive fallback, `siteConfig` satisfies `SiteConfig`, error messages gated on `NODE_ENV`, `not-found.tsx` semantic HTML, types centralized to `types.ts`, npm overrides for `esbuild`/`postcss` (0 vulnerabilities), `skills/` excluded from `tsconfig.json` |
+| **13: Documentation Alignment** | Complete | Component count corrected (16 active), Chinese text in lessons translated to English, license aligned to MIT, `react-error-boundary` version clarified (v6+, originated v4), `GEMINI.md` rewritten, new gotchas and lessons added (50 total), `skills-backup.tar.gz` flagged for removal |
 
 ## Testing
 
@@ -111,7 +113,14 @@ npm run build      # Production build (runs typecheck + next build)
 | `Project` type missing `tags`/`github`/`live` fields | Old Vite-era shape; consolidated `Project` uses `tech`, `links.repo`, `links.live` | Update imports to use `@/lib/projects` re-export |
 | `ContactApiResponse` type not found | Type added in Remediation 4 | Import from `@/lib/types` — it is a discriminated union for API responses |
 | `drizzle.config.ts` throws on startup | `DATABASE_URL` environment variable not set | Copy `.env.example` to `.env.local` and configure your database URL |
+| `drizzle.config.json` still exists | Old JSON config was not deleted after conversion to `.ts` | **Fixed in Remediation 7** — file deleted and added to `.gitignore`. If you see it, delete it. |
+| TypeScript errors from `skills/` directory | `tsconfig.json` include pattern `**/*.ts` was too broad | **Fixed in Remediation 7** — `"skills"` added to `exclude`. Run `npm run typecheck` to verify. |
+| CSP blocks scripts | `'unsafe-eval'` removed from `script-src` in Remediation 7 | If a third-party script needs eval, add a `script-src` exception with a specific domain, not `'unsafe-eval'` |
+| Contact form says "email delivery not configured" | API now honestly reports that email isn't sent | Set `EMAIL_API_KEY` in `.env.local` and integrate an email service provider |
+| BentoGrid items overflow on mobile | `grid-column: span 2` without fallback | **Fixed in Remediation 7** — `.bento-span-2` CSS class with `@media (max-width: 640px)` fallback added |
 | ESLint error: `Calling setState synchronously within an effect` | React 19 strict linter detects `setState` inside `useEffect` | Initialize state directly in render (e.g., `useState(getInitialTheme)`) or use a lazy initializer |
+| `GEMINI.md` references outdated variables | File was not updated during 7 remediation phases | Update GEMINI.md to match CLAUDE.md/AGENTS.md, or delete it |
+| Component count mismatch in docs | ThemeScript (Server Component) was not counted | 16 active components total (15 Client + 1 Server) |
 
 ### Visual Issues
 
@@ -132,7 +141,7 @@ Archived components use custom Tailwind classes (`font-utility`, `font-editorial
 
 ### Theme Not Persisting
 
-The theme system uses `localStorage` with the key `"theme"`. `ThemeScript` (inline in `layout.tsx`) reads from localStorage and falls back to system preference (`prefers-color-scheme`). Both `ThemeScript` and `PortfolioApp` now target `document.documentElement` consistently. If theme fails to persist, check that localStorage is available (not blocked by private browsing).
+The theme system uses `localStorage` with the key `"theme"`. `ThemeScript` (inline in `layout.tsx`) reads from localStorage and falls back to system preference (`prefers-color-scheme`). Theme initialization happens in exactly one place — the `ThemeScript` in `<head>`. The previous duplicate `useEffect` in `PortfolioApp.tsx` was removed in Remediation 7 because it caused redundant DOM writes and potential hydration mismatches. If theme fails to persist, check that localStorage is available (not blocked by private browsing).
 
 ### Drizzle Config Fails Without DATABASE_URL
 
@@ -164,17 +173,20 @@ The `drizzle.config.ts` file throws an error if `DATABASE_URL` is not set. This 
 
 ### Moderate
 
-1. **Contact API logs to console** — The `/api/contact` endpoint validates and rate-limits requests, but only logs submissions to the server console (see `TODO` in `route.ts`). A real email service (Resend, SendGrid, etc.) needs to be integrated before production use.
+1. **Contact API logs to console** — The `/api/contact` endpoint validates and rate-limits requests, but only logs submissions to the server console (see `TODO` in `route.ts`). The response message now honestly states that email delivery is not yet configured. A real email service (Resend, SendGrid, etc.) needs to be integrated before production use. Set `EMAIL_API_KEY` in `.env.local` when integrating.
 2. **No error reporting** — `error.tsx` has a `console.error` placeholder for Sentry or similar. No structured error reporting exists.
 3. **Analytics table never written to** — The `analytics` table schema exists and the health endpoint checks DB connectivity, but no code ever inserts rows.
 4. **Missing portrait assets** — Archived `data.ts` references `/portraits/*.webp` files that don't exist in `public/`.
-5. **No SSR** — `page.tsx` is a Client Component with `ssr: false`, so search engines see only the loading state. Consider re-enabling SSR with `Suspense` boundaries for SEO.
+5. ~~**No SSR**~~ — **FIXED in Remediation 7**: `ssr: false` has been removed from `page.tsx`. The portfolio is now server-rendered and visible to search engines. Theme initialization is handled by `ThemeScript` in `<head>` (no FOUC), and `PortfolioApp.tsx` no longer has a duplicate theme `useEffect` that would cause hydration mismatches.
 
 ### Low
 
 6. **Archived components use old CSS variable names** — Components in `_archive/` reference shorthand variable names (`--border-color`, `--text-primary`, etc.) that don't exist in `@theme`. Must be updated before reintegration.
-7. **In-memory rate limiting only** — `rate-limit.ts` uses a `Map` that doesn't persist across server instances or restarts. Suitable for single-instance deployments only; replace with Redis/Upstash for production multi-instance deployments.
+7. **In-memory rate limiting only** — `rate-limit.ts` uses a `Map` that doesn't persist across server instances or restarts. The cleanup logic now uses lazy evaluation instead of a never-cleared `setInterval`. When no client IP can be determined, rate limiting is skipped rather than grouping all unknown requests under a shared `127.0.0.1` key (which was a DoS vector). Suitable for single-instance dev only; replace with Redis/Upstash for production multi-instance deployments.
 8. **ESLint warnings from `@next/next/no-page-custom-font`** — Loading Google Fonts via `<link>` in App Router (`layout.tsx`) triggers this Next.js lint warning. This is an intentional design choice — the alternative (`next/font`) requires significant refactoring for the dual-theme design system. The warning is benign.
+9. **`GEMINI.md` is severely outdated** — This agent instruction file references `Inter` (should be `DM Sans`), `--bg-primary`/`--text-primary` (should be `--color-bg`/`--color-text-primary`), `theme-night`/`theme-day` (should be `data-theme`), `src/lib/data.ts` (archived), `Next.js 16.2.6` (should be `16.2.9`), and `Tailwind CSS 4.0` (should be `4.1.17`). It was not updated during any of the 7 remediation phases and will mislead agents that read it.
+10. **`skills-backup.tar.gz` is 40MB** — This archive in the repo root is unnecessarily large for version control and should be deleted or moved to external storage.
+11. **License field inconsistency** — `package.json` says `"MIT"` but README previously said "Proprietary". Now aligned to MIT.
 
 ## Lessons Learnt
 
@@ -204,22 +216,47 @@ The `drizzle.config.ts` file throws an error if `DATABASE_URL` is not set. This 
 24. **Remove unused features rather than leaving them half-implemented** — `prefersHighContrast` was defined in `AccessibilityProvider` but never consumed, and no high-contrast color palette existed. Removing it entirely was cleaner than leaving a dead toggle that implied functionality that didn't work.
 25. **Focus management is essential for keyboard navigation** — Hash-based routing that scrolls without moving focus creates a trap for keyboard users who must Tab through all intermediate elements. Adding `tabindex="-1"` + `focus()` on the target heading after navigation brings keyboard users directly to the new section.
 26. **Never hardcode credentials in config files** — `drizzle.config.json` had `postgres:postgres` in plaintext. Converting to `drizzle.config.ts` with `process.env.DATABASE_URL` eliminated the security risk and aligned with the `.env.example` pattern. The config now throws a clear error message if the variable is missing.
-27. **`instanceof Error` 对 `unknown` 类型在 TS strict 模式下不可靠** — 应使用自定义类型守卫（如 `isErrorLike()`）代替。TS 5.5+ 严格模式下，`instanceof Error` 可能无法正确收窄 `unknown` 类型，导致 `Property 'message' does not exist on type '{}'` 错误。
-28. **`eslint-config-next` 已包含 `eslint-plugin-jsx-a11y`** — 不要重复导入。`eslint-config-next/core-web-vitals` 已经包含该插件。重复导入会导致 `ConfigError: Cannot redefine plugin "jsx-a11y"`。
-29. **`useEffect` 中同步调用 `setState` 会触发 linter 警告** — `useEffect(() => { setState(true); }, [])` 这样的模式会导致 React linter 报错。如果需要同步设置初始状态，应直接初始化为 `true`，或使用惰性初始化 `useState(() => true)`。
-30. **`history.pushState` 替代 `location.hash` 时需要注意事件监听** — `pushState` 不会触发 `hashchange` 事件，需要监听 `popstate` 事件来捕获后退/前进导航。这是 SPA hash 路由的正确实现方式。
-31. **为可变列表使用稳定的 `key`** — `key={index}` 在列表项顺序或内容变化时会导致 React 无法正确追踪项目。应使用稳定的唯一 ID（如 `Date.now()` 或递增计数器），并使用 `key={item.id}`。
+27. **`instanceof Error` does not reliably narrow `unknown` in TS strict** — TypeScript 5.5+ strict mode may fail to narrow `unknown` via `instanceof Error`. Use a custom type guard (e.g., `isErrorLike()`) instead. Encountered in `error.tsx` where `instanceof Error` produced `Property 'message' does not exist on type '{}'` despite the guard.
+28. **`eslint-config-next` already bundles `eslint-plugin-jsx-a11y`** — Do NOT import it separately in `eslint.config.mjs`. The plugin is activated transitively through `eslint-config-next/core-web-vitals`. Redundant imports trigger `ConfigError: Cannot redefine plugin "jsx-a11y"`.
+29. **`useEffect` should not synchronously call `setState`** — `useEffect(() => { setState(true); }, [])` triggers React linter warnings in React 19. Initialize state directly in render (e.g., `const [mounted] = useState(true)`) or use a lazy initializer `useState(() => true)`.
+30. **`history.pushState` replaces `location.hash` but requires `popstate` listener** — `pushState` does NOT fire `hashchange` events. You must listen for `popstate` to capture back/forward navigation. This is the correct implementation pattern for SPA hash routing.
+31. **Use stable keys for mutable lists** — `key={index}` causes React to lose track of items when order changes. Use stable unique IDs (e.g., `Date.now()` or a monotonic counter) and reference them with `key={item.id}`.
+32. **Prior remediation "fixes" may be incomplete** — Remediation 4 claimed `drizzle.config.json` was "converted to `.ts`", but the old JSON file with hardcoded credentials was never deleted. Always verify that old files are removed after conversion, not just that new files exist. Check `.gitignore` too.
+33. **`ssr: false` is a sledgehammer for hydration mismatches** — The real solution to `localStorage`/`window` hydration issues is to handle initialization in a blocking `<head>` script (`ThemeScript.tsx`), not to disable SSR entirely. SSR is critical for SEO; `ssr: false` makes the entire page invisible to search engines.
+34. **`'unsafe-eval'` in CSP is almost never needed** — Next.js does not require `'unsafe-eval'` in production. The only common exception is development hot module replacement. Remove it from `script-src`; keep `'unsafe-inline'` only on `style-src` where inline styles require it.
+35. **API responses that claim success without delivering are deceptive** — A contact form that returns `success: true` without sending email misleads users into thinking their message was delivered. Always be honest in API responses — if email delivery isn't configured, say so explicitly in the response message.
+36. **`as` type casts bypass TypeScript's safety net** — Using `body as ContactPayload` after a basic `typeof` check means any JSON shape passes through. Replace `as` casts with runtime type guards (`isContactPayload()`) that validate the actual structure of the data. TypeScript `as` assertions are compile-time only — they provide zero runtime protection.
+37. **Falling back to a shared IP in rate limiting is a DoS vector** — If `getClientIp()` returns `127.0.0.1` for all requests without proxy headers, every unknown-origin request shares the same rate limit bucket. A single attacker can exhaust that bucket and block ALL legitimate requests from unknown origins. Return `null` instead and skip rate limiting when IP cannot be determined.
+38. **`setInterval` that is never cleared creates a memory leak** — Module-level `setInterval` for cleanup runs even when the server is idle and never stops. Replace with lazy cleanup triggered by actual requests (check elapsed time inside the rate limit function).
+39. **Duplicate theme initialization causes hydration mismatches** — If `ThemeScript` sets `data-theme` in `<head>` AND a `useEffect` in `PortfolioApp` also writes to `data-theme` on mount, the second write is redundant and can cause a flash or hydration mismatch. Theme initialization should happen in exactly one place — the `<head>` script.
+40. **`document.getElementById` in React should be replaced with `useRef`** — Direct DOM access bypasses React's rendering lifecycle and can reference stale or non-existent elements. `useRef` provides a stable reference that React manages, ensuring the reference stays current across re-renders.
+41. **`grid-column: span 2` without responsive fallback causes overflow** — When the viewport is too narrow for two columns, `span 2` items overflow their container. Always pair `grid-column: span 2` with a `@media (max-width)` rule that resets to `span 1` on mobile.
+42. **`as const` without `satisfies` loses type checking** — `const x = { ... } as const` freezes the type but doesn't validate it against an interface. Adding `satisfies InterfaceName` ensures the object actually conforms to the expected shape while preserving the literal types.
+43. **Error messages must be gated on `NODE_ENV`** — Displaying raw error messages in production (`error.message`) can leak stack traces, file paths, and internal implementation details. Always gate detailed error display on `process.env.NODE_ENV === 'development'` and show a generic message in production.
+44. **Centralize type definitions to prevent drift** — Defining `Skill` in `skills.ts` and `TimelineEntry` in `timeline.ts` means each file is its own source of truth. Moving types to `types.ts` with re-exports from the data modules ensures there's one canonical definition that all consumers reference.
+45. **`tsconfig.json` include patterns must be scoped narrowly** — `"include": ["**/*.ts"]` catches every `.ts` file in the repo, including unrelated directories like `skills/` that import packages not in the project's dependencies. Always use targeted include patterns or add problematic directories to `exclude`.
+46. **npm overrides can fix transitive dependency vulnerabilities** — When `npm audit fix` can't resolve vulnerabilities because the fix would break a direct dependency, use `"overrides"` in `package.json` to force a patched version of the transitive dependency. This resolved all 6 npm vulnerabilities (esbuild RCE, PostCSS XSS) without breaking the build.
+47. **`GEMINI.md` must be kept in sync with other agent docs** — GEMINI.md became severely outdated (referenced `Inter`, `--bg-primary`, `theme-night`, `src/lib/data.ts`, `Next.js 16.2.6`) while README/CLAUDE/AGENTS were updated through 7 remediation phases. Any agent instruction file must be updated in the same pass as the others, or it will mislead future agents.
+48. **License field consistency matters** — `package.json` had `"MIT"` but README stated "Proprietary — All rights reserved.". Always keep license declarations consistent across all project files.
+49. **`react-error-boundary` v6 still has the `unknown` error type from v4** — The `FallbackProps.error` type change from `Error` to `unknown` was introduced in v4 and persists through v6+. Documentation should reference the current installed version (v6) but note the breaking change originated in v4.
+50. **Component counts must be audited after each remediation** — After 7 remediation phases, the active component count was listed as 15 in multiple places despite 16 existing (ThemeScript was always present but excluded from counts). Always count actual files in the directory when updating documentation.
 
 ## Recommendations
 
-1. **Integrate an email service** — Replace the `console.log` in `/api/contact/route.ts` with a real email provider (Resend, SendGrid, etc.) before deploying to production.
+1. **Integrate an email service** — Replace the `console.log` in `/api/contact/route.ts` with a real email provider (Resend, SendGrid, etc.) before deploying to production. The `EMAIL_API_KEY` variable is already documented in `.env.example`.
 2. **Add error reporting** — Integrate Sentry or a similar service in `error.tsx` and the global error boundary.
 3. **Reconcile CSS variable naming for archived components** — If reintegrating any archived components, either add alias variables in `globals.css` or rewrite them to use the `--color-` prefix convention.
 4. **Add portrait assets** — Place webp images in `public/portraits/` if needed, or remove references from archived `data.ts`.
-5. **Consider re-enabling SSR** — Replace `ssr: false` with `Suspense` boundaries for better SEO while keeping interactive features client-side.
+5. ~~**Re-enable SSR**~~ — **DONE in Remediation 7**: `ssr: false` removed. Portfolio is now server-rendered and SEO-visible.
 6. **Write to analytics table** — Either implement middleware to track page views or remove the unused `analytics` table schema.
-7. **Replace in-memory rate limiting for production** — For multi-instance deployments, use Redis/Upstash.
+7. **Replace in-memory rate limiting for production** — For multi-instance deployments, use Redis/Upstash. The current implementation includes dev-only warnings and skips rate limiting when client IP cannot be determined.
+8. **Generate production-quality OG image** — The current `og-image.png` is a placeholder generated with PIL. Replace with a high-fidelity design matching the brutalist aesthetic (consider using Playwright for HTML-to-image generation).
+9. **Migrate Google Fonts to `next/font/google`** — Currently loaded via render-blocking `<link>` tags in `layout.tsx`. `next/font/google` provides automatic optimization, eliminates render-blocking, and supports `next/font` CSS variable injection. Requires refactoring the dual-theme font loading.
+10. **Remove `skills/` directory from repo** — The `skills/` directory contains 40+ unrelated AI skill modules (61 MB) that import `z-ai-web-dev-sdk` (not a project dependency). It's excluded from `tsconfig.json` and the build, but clutters the repository. Consider moving it to a separate repo or deleting it entirely.
+11. **Clean up legacy documentation files** — The repo root contains 20+ remediation reports, code review PDFs, tar archives, and status files from prior sessions. These should be archived or removed to reduce repo clutter.
+12. **Update or remove `GEMINI.md`** — The file is severely outdated (references `Inter`, `--bg-primary`, `theme-night`, `src/lib/data.ts`, `Next.js 16.2.6`, `Tailwind CSS 4.0`). Either update it to match CLAUDE.md/AGENTS.md or delete it to prevent agent confusion.
+13. **Audit `skills-backup.tar.gz` (40MB)** — This massive archive in the repo root should not be version-controlled. Delete or move to external storage.
 
 ## License
 
-Proprietary — All rights reserved.
+MIT — See `package.json` for details.
