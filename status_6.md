@@ -225,3 +225,62 @@ index 4aca76d..34638e3 100644
      >
        {isNight ? "NIGHT" : "DAY"}
 
+---
+
+# Todos
+[✓] Update README.md with ThemeSwitch hydration fix, lessons, and troubleshooting
+[✓] Update AGENTS.md with ThemeSwitch two-pass render gotcha and critical warnings
+[✓] Update CLAUDE.md with ThemeSwitch implementation and Remediation 8
+[✓] Verify CSP `unsafe-eval` removal in next.config.ts
+[✓] Run final typecheck, lint, and build
+All three documentation files have been meticulously reviewed and updated. Here is a comprehensive summary of all changes:
+📋 Documentation Update Summary
+1. README.md — Updated
+Project Status Table: Added Remediation 8 (ThemeSwitch Hydration Fix) row with description of the two-pass render fix.
+Troubleshooting — New Entries:
+- 
+Hydration Mismatch After Enabling SSR: Added detailed symptom/cause/fix section explaining the ThemeSwitch hydration error, the two-pass render strategy, and how requestAnimationFrame avoids both the hydration mismatch and the React 19 setState-in-effect ESLint error.
+- 
+Updated ESLint setState in effect entry to reference ThemeSwitch.tsx (Remediation 8) and the requestAnimationFrame pattern.
+- 
+Updated CSP entry to reflect that script-src now only allows 'self'.
+Lessons Learnt: Added Lesson 51 — "Enabling SSR requires two-pass render for client-only state" with the generalization that this pattern applies to any component reading localStorage/matchMedia after SSR is enabled.
+Other Fixes:
+- 
+next.config.ts CSP verified: 'unsafe-eval' removed from script-src (was re-added in error, now corrected).
+2. AGENTS.md — Updated
+New Operational Gotcha: ThemeSwitch Uses Two-Pass Render to Avoid Hydration Mismatch
+- 
+Detailed explanation of the two-pass render strategy (safe default → useEffect sync)
+- 
+Explains why requestAnimationFrame is used (avoids React 19 setState-in-effect ESLint error)
+- 
+Critical warning: Do NOT read localStorage/matchMedia directly during render phase when SSR is enabled
+- 
+Two correct patterns provided: (1) two-pass render, (2) read from DOM attribute set by ThemeScript
+Critical "Never" List: Updated the setState in useEffect rule to reference ThemeSwitch.tsx (Remediation 8) and the requestAnimationFrame pattern.
+Lessons Learned: Added Lesson 41 — generalizing the two-pass render pattern for any component needing client-only initialization after SSR is enabled.
+3. CLAUDE.md — Updated
+Visual Fidelity Checklist: Added completion entries:
+- 
+ThemeSwitch hydration mismatch fixed ✅ (Remediation 8)
+- 
+CSP unsafe-eval removed ✅ (Confirmed in Remediation 8)
+Remediation History: Added Remediation 8 (ThemeSwitch Hydration Fix — 2026-06-15) table with 4 rows:
+1. 
+Hydration mismatch after enabling SSR → two-pass render fix
+2. 
+getInitialTheme() accessed window during render → removed helper, initialized to "day", synced after hydration
+3. 
+setState in useEffect triggered ESLint warning → requestAnimationFrame defers to next paint
+4. 
+CSP 'unsafe-eval' re-added in error → confirmed removed, script-src now only 'self'
+Verification Results
+Check	Result
+npm run typecheck	✅ Passed (0 errors)
+npx eslint src/	✅ Passed (0 errors, 1 benign warning about Google Fonts <link>)
+npm run build	✅ Passed (static pages generated successfully)
+Root Cause of the Hydration Error
+The error was caused by ssr: false being removed from page.tsx (Remediation 7). ThemeSwitch.tsx previously called getInitialTheme() during render, which returned "day" on the server (no window) but could return "night" on the client (reads localStorage/matchMedia). With SSR enabled, this mismatch triggered React's hydration error.
+Fix: Two-pass render strategy — render a safe default ("day") on SSR, then sync to the actual theme after hydration via useEffect + requestAnimationFrame. This avoids both the hydration mismatch and the React 19 setState-in-effect ESLint error.
+

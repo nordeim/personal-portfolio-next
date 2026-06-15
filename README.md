@@ -88,6 +88,7 @@ npm run build      # Production build (runs typecheck + next build)
 | **11: Remediation 6 (Full Codebase Alignment)** | Complete | `AccessibilityProvider.tsx` removed, `useReducedMotion.ts` / `ScrollReveal.tsx` / `HeroKinetic.tsx` / `ThemeSwitch.tsx` refactored to avoid `setState` in `useEffect`, `Timeline.tsx` hardcoded `8px` replaced with CSS variable, `_archive/` excluded from ESLint |
 | **12: Remediation 7 (CRITICAL + HIGH Security & Quality)** | Complete | 18 issues fixed: `drizzle.config.json` deleted (credential leak), `ssr: false` removed (SEO now works), CSP hardened (`unsafe-eval` removed), contact API response made honest, OG image generated, `as ContactPayload` replaced with type guard, rate limiter returns `null` IP instead of shared fallback, lazy cleanup replaces never-cleared `setInterval`, duplicate theme init removed, `getElementById` replaced with `useRef`, BentoGrid responsive fallback, `siteConfig` satisfies `SiteConfig`, error messages gated on `NODE_ENV`, `not-found.tsx` semantic HTML, types centralized to `types.ts`, npm overrides for `esbuild`/`postcss` (0 vulnerabilities), `skills/` excluded from `tsconfig.json` |
 | **13: Documentation Alignment** | Complete | Component count corrected (16 active), Chinese text in lessons translated to English, license aligned to MIT, `react-error-boundary` version clarified (v6+, originated v4), `GEMINI.md` rewritten, new gotchas and lessons added (50 total), `skills-backup.tar.gz` flagged for removal |
+| **14: Remediation 8 (ThemeSwitch Hydration Fix)** | Complete | Fixed hydration mismatch caused by enabling SSR (removing `ssr: false`). `ThemeSwitch` now uses two-pass render: server renders `"day"` default, client syncs to actual theme via `useEffect` + `requestAnimationFrame` after hydration. Prevents React hydration mismatch when `localStorage`/`matchMedia` differ from server default. |
 
 ## Testing
 
@@ -115,10 +116,10 @@ npm run build      # Production build (runs typecheck + next build)
 | `drizzle.config.ts` throws on startup | `DATABASE_URL` environment variable not set | Copy `.env.example` to `.env.local` and configure your database URL |
 | `drizzle.config.json` still exists | Old JSON config was not deleted after conversion to `.ts` | **Fixed in Remediation 7** — file deleted and added to `.gitignore`. If you see it, delete it. |
 | TypeScript errors from `skills/` directory | `tsconfig.json` include pattern `**/*.ts` was too broad | **Fixed in Remediation 7** — `"skills"` added to `exclude`. Run `npm run typecheck` to verify. |
-| CSP blocks scripts | `'unsafe-eval'` removed from `script-src` in Remediation 7 | If a third-party script needs eval, add a `script-src` exception with a specific domain, not `'unsafe-eval'` |
+| CSP blocks scripts | `'unsafe-eval'` removed from `script-src` in Remediation 7 | `script-src` now only allows `'self'`. If a third-party script needs `'unsafe-eval'`, add a specific `script-src` exception with the domain, not a global `'unsafe-eval'` directive |
 | Contact form says "email delivery not configured" | API now honestly reports that email isn't sent | Set `EMAIL_API_KEY` in `.env.local` and integrate an email service provider |
 | BentoGrid items overflow on mobile | `grid-column: span 2` without fallback | **Fixed in Remediation 7** — `.bento-span-2` CSS class with `@media (max-width: 640px)` fallback added |
-| ESLint error: `Calling setState synchronously within an effect` | React 19 strict linter detects `setState` inside `useEffect` | Initialize state directly in render (e.g., `useState(getInitialTheme)`) or use a lazy initializer |
+| ESLint error: `Calling setState synchronously within an effect` | React 19 strict linter detects `setState` inside `useEffect` | Use `requestAnimationFrame` inside `useEffect` to defer the state update to the next paint, or initialize state directly in render (e.g., `useState(getInitialTheme)`) or use a lazy initializer. Fixed in `ThemeSwitch.tsx` (Remediation 8) |
 | `GEMINI.md` references outdated variables | File was not updated during 7 remediation phases | Update GEMINI.md to match CLAUDE.md/AGENTS.md, or delete it |
 | Component count mismatch in docs | ThemeScript (Server Component) was not counted | 16 active components total (15 Client + 1 Server) |
 
@@ -142,6 +143,18 @@ Archived components use custom Tailwind classes (`font-utility`, `font-editorial
 ### Theme Not Persisting
 
 The theme system uses `localStorage` with the key `"theme"`. `ThemeScript` (inline in `layout.tsx`) reads from localStorage and falls back to system preference (`prefers-color-scheme`). Theme initialization happens in exactly one place — the `ThemeScript` in `<head>`. The previous duplicate `useEffect` in `PortfolioApp.tsx` was removed in Remediation 7 because it caused redundant DOM writes and potential hydration mismatches. If theme fails to persist, check that localStorage is available (not blocked by private browsing).
+
+### Hydration Mismatch After Enabling SSR
+
+**Symptom**: Browser console shows "Hydration failed because the server rendered text didn't match the client." with differences in `aria-checked`, `aria-label`, and button text for `ThemeSwitch`.
+
+**Cause**: After removing `ssr: false` from `page.tsx` (Remediation 7), `ThemeSwitch` renders during SSR. Its `getInitialTheme()` function reads `localStorage`/`matchMedia`, which differ between server (always returns `"day"`) and client (reads actual preference). This causes React to detect a hydration mismatch.
+
+**Fix (Remediation 8)**: `ThemeSwitch` now uses a **two-pass render strategy**:
+1. **SSR + first client render**: Always renders `"day"` (safe default matching server)
+2. **After hydration**: `useEffect` with `requestAnimationFrame` reads the `data-theme` DOM attribute (set by `ThemeScript.tsx`) and re-renders with the actual theme
+
+This defers the state update to the next paint, avoiding both the hydration mismatch and the React 19 `setState-in-effect` ESLint error.
 
 ### Drizzle Config Fails Without DATABASE_URL
 
@@ -240,6 +253,7 @@ The `drizzle.config.ts` file throws an error if `DATABASE_URL` is not set. This 
 48. **License field consistency matters** — `package.json` had `"MIT"` but README stated "Proprietary — All rights reserved.". Always keep license declarations consistent across all project files.
 49. **`react-error-boundary` v6 still has the `unknown` error type from v4** — The `FallbackProps.error` type change from `Error` to `unknown` was introduced in v4 and persists through v6+. Documentation should reference the current installed version (v6) but note the breaking change originated in v4.
 50. **Component counts must be audited after each remediation** — After 7 remediation phases, the active component count was listed as 15 in multiple places despite 16 existing (ThemeScript was always present but excluded from counts). Always count actual files in the directory when updating documentation.
+51. **Enabling SSR requires two-pass render for client-only state** — When `ssr: false` is removed, any component that reads `localStorage`/`matchMedia` during render will cause a hydration mismatch because the server can't access these APIs. The fix in `ThemeSwitch.tsx` (Remediation 8) uses a two-pass render: SSR renders a safe default (`"day"`), then `useEffect` + `requestAnimationFrame` syncs to the actual theme after hydration. This is the correct pattern for all client-only initialization.
 
 ## Recommendations
 

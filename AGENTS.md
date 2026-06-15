@@ -37,6 +37,17 @@ Array index access returns `T | undefined`. Always use `?.` or `??`. This caught
 ### Theme System: Single Initialization Point
 Theme switching uses `data-theme="night"` / `data-theme="day"` on `<html>`. Initialization happens in `ThemeScript` (inline `<script>` in `<head>`) — the only place that sets `data-theme` on mount. `PortfolioApp.tsx` no longer has a duplicate theme `useEffect` (removed in Remediation 7 to prevent hydration mismatches). Runtime toggles use `handleThemeChange` which uses `useRef` (not `document.getElementById`) for screen reader announcements. CSS selectors target `[data-theme="day"]`. Do NOT use class-based theme switching (`theme-night`, `theme-day`). Do NOT set `data-theme` on `<body>` — it must be on `<html>`.
 
+### `ThemeSwitch` Uses Two-Pass Render to Avoid Hydration Mismatch
+`ThemeSwitch.tsx` reads the theme from `localStorage`/`matchMedia`, which are unavailable during SSR. After removing `ssr: false` (Remediation 7), this caused a hydration mismatch. **Remediation 8** fixed this with a two-pass render:
+- **SSR + first client render**: Always renders `"day"` (safe default matching server)
+- **After hydration**: `useEffect` + `requestAnimationFrame` reads the `data-theme` DOM attribute (set by `ThemeScript.tsx`) and re-renders with the actual theme
+
+This is the correct pattern for any component that needs client-only state after SSR is enabled. The `requestAnimationFrame` wrapper avoids the React 19 `setState-in-effect` ESLint error by deferring the update to the next paint.
+
+**Critical**: Do NOT read `localStorage`/`matchMedia` directly during the render phase of a Client Component when SSR is enabled. Either:
+1. Use the two-pass render pattern (safe default → `useEffect` sync), or
+2. Read from the DOM attribute that `ThemeScript` already set (which matches server/client because it's in `<head>` before hydration)
+
 ### Theme Falls Back to System Preference
 When no `localStorage` value exists, `ThemeScript` checks `window.matchMedia('(prefers-color-scheme: dark)')` and sets the theme accordingly. This means a user's first visit respects their OS preference.
 
@@ -131,7 +142,7 @@ The Night theme needs a lighter muted text (`#918983`) while the Day theme needs
 - **Never** hardcode credentials in config files — use `process.env.DATABASE_URL` or other environment variables.
 - **Never** access `ContactApiResponse.error` without checking `data.success === false` first (discriminated union narrowing).
 - **Never** trust remediation docs without validating file paths against the actual codebase structure.
-- **Never** call `setState` synchronously inside `useEffect` — React 19 strict linter flags this.
+- **Never** call `setState` synchronously inside `useEffect` — React 19 strict linter flags this. Use `requestAnimationFrame` inside `useEffect` to defer the state update to the next paint (as done in `ThemeSwitch.tsx` — Remediation 8).
 - **Never** let `_archive/` code trigger ESLint errors — add `**/_archive/**` to `globalIgnores`.
 - **Never** use `as` type casts on unvalidated input — use runtime type guards.
 - **Never** expose internal error details in production — gate on `process.env.NODE_ENV`.
@@ -204,4 +215,5 @@ The Night theme needs a lighter muted text (`#918983`) while the Day theme needs
 38. **License declarations must be consistent across files** — `package.json` said `"MIT"` but README said "Proprietary". Always cross-check.
 39. **`react-error-boundary` v6+ preserves the v4 `unknown` error type** — Documentation should reference the current installed version (v6) while noting the breaking change originated in v4.
 40. **Component counts must be verified by file audit** — After 7 remediations, active component count was listed as 15 despite 16 existing. ThemeScript (Server Component) was consistently missed. Always `ls` the directory.
+41. **Two-pass render is required when SSR is enabled and components read client-only APIs** — `ThemeSwitch.tsx` caused a hydration mismatch after `ssr: false` was removed (Remediation 7) because it read `localStorage`/`matchMedia` during render. The fix (Remediation 8) renders a safe default on the server, then uses `useEffect` + `requestAnimationFrame` to sync to the actual theme after hydration. This pattern generalizes to any component that needs client-only initialization after SSR is enabled.
 

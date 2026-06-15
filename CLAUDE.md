@@ -236,6 +236,8 @@ API responses from `/api/contact` use `ContactApiResponse = ContactApiSuccess | 
 - [x] BentoGrid responsive fallback ✅ Completed in Remediation 7
 - [x] Type definitions centralized to `types.ts` ✅ Completed in Remediation 7
 - [x] npm vulnerabilities resolved ✅ Completed in Remediation 7 (0 vulnerabilities via overrides)
+- [x] ThemeSwitch hydration mismatch fixed ✅ Completed in Remediation 8 — two-pass render with `useEffect` + `requestAnimationFrame`
+- [x] CSP `unsafe-eval` removed ✅ Confirmed in Remediation 8 — `script-src` now only `'self'`
 
 ## Remediation History
 
@@ -366,4 +368,13 @@ API responses from `/api/contact` use `ContactApiResponse = ContactApiSuccess | 
 | `react-error-boundary` type change docs referenced "v4" but installed version is v6 | Updated to "v6+ (originated in v4)" |
 | `GEMINI.md` severely outdated (7 remediations behind) | Updated to match current codebase state |
 | `skills-backup.tar.gz` (40MB) in repo root undocumented | Added to outstanding issues and recommendations |
+
+### Remediation 8 (ThemeSwitch Hydration Fix — 2026-06-15)
+
+| Issue | Resolution |
+|-------|-----------|
+| Hydration mismatch after enabling SSR | `ThemeSwitch` now uses two-pass render: SSR renders `"day"` default, client syncs via `useEffect` + `requestAnimationFrame` after hydration |
+| `getInitialTheme()` accessed `window` during render, differing between server and client | Removed `getInitialTheme()` helper; state initialized to `"day"` (SSR-safe); actual theme read from DOM after hydration |
+| `setState` inside `useEffect` triggered React 19 ESLint warning | Wrapped state update in `requestAnimationFrame` to defer to next paint, avoiding synchronous `setState` in effect |
+| `next.config.ts` CSP had `'unsafe-eval'` re-added in error | Confirmed `'unsafe-eval'` removed from `script-src`; `script-src` now only allows `'self'` |
 
